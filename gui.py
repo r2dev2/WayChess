@@ -2,6 +2,8 @@ from multiprocessing import get_context, freeze_support
 import os
 from pathlib import Path
 import re
+import sys
+import time
 
 import chess
 import pygame
@@ -11,6 +13,9 @@ from core import Database
 SQUARE_SIZE = 68
 pwd = Path(os.getcwd())
 img = pwd / "img"
+pgn_path = pwd / "test.pgn"
+if os.path.isfile(sys.argv[1]):
+    pgn_path = sys.argv[1]
 
 pygame.init()
 
@@ -48,15 +53,19 @@ class GUI:
 
         # Initialize internal variables
         self.piece_at = dict()
-        self.database = Database("test.pgn")
+        self.database = Database(pgn_path)
         self.game = 0
         self.node = self.database[self.game]
         self.move = 0
+        self.key_pressed = {
+                306: False
+        }
         self.button_pressed = {
                 1: False,
                 2: False,
                 3: False
         }
+        self.beg_click = (0, 0)
         self.is_promoting = False
         self.white = True
         self.move_pattern = re.compile(r"(\d+\. \S+ \S*)")
@@ -66,6 +75,7 @@ class GUI:
         self.screen = pygame.display.set_mode(display_size, pygame.NOFRAME)
         self.font = pygame.font.Font("freesansbold.ttf", 32)
         self.font_small = pygame.font.Font(pygame.font.match_font("calibri"), 24)
+        self.last_refresh = time.time()
 
         pygame.display.set_caption("WayChess")
         icon = load_img(img / "favicon.ico")
@@ -103,37 +113,52 @@ class GUI:
           * Move comments
           * Move marks eg. ! ?
         """
-        # history = chess.Board().variation_san(self.board.move_stack) + ' '
-        # moves = re.findall(self.move_pattern, history)
-        beg = self.node.game().variations[0]
-        moves = []
-        buff = []
-        counter = 1
-        while not beg.is_end():
-            buff.append((beg.san(), beg.comment))
-            if not len(buff) % 2:
-                s = f"{counter} {buff[0][0]:5} {buff[1][0]:5}"
-                if counter-1 == int(self.move):
-                    s = '  ' + s
-                moves.append(s)
-                # if buff[0][1] != '':
-                #     moves.append(f"    {buff[0][1]:10}")
-                # if buff[1][1] != '':
-                #     moves.append(f"    {buff[1][1]:10}")
-                buff = []
-                counter += 1
-            beg = beg.variations[0]
+        node = self.node
+        history = chess.Board().variation_san(node.end().board().move_stack) + ' '
+        moves = re.findall(self.move_pattern, history)
+        for i in range(len(moves)):
+            if i == int(self.move-.5):
+                moves[i] = '  ' + moves[i]
+        # beg = self.node.game().variations[0]
+        # moves = []
+        # buff = []
+        # counter = 1
+        # while not beg.is_end():
+        #     buff.append((beg.san(), beg.comment))
+        #     print(beg.san())
+        #     if not len(buff) % 2:
+        #         s = f"{counter} {buff[0][0]:5} {buff[1][0]:5}"
+        #         if counter-1 == int(self.move-.5):
+        #             s = '  ' + s
+        #         moves.append(s)
+        #         # if buff[0][1] != '':
+        #         #     moves.append(f"    {buff[0][1]:10}")
+        #         # if buff[1][1] != '':
+        #         #     moves.append(f"    {buff[1][1]:10}")
+        #         buff = []
+        #         counter += 1
+        #     beg = beg.variations[0]
+        # if len(buff) == 1:
+        #     s = f"{counter} {buff[0][0]:5}"
+        #     if counter-1 == int(self.move-.5):
+        #         s = ' ' + s
+        #     moves.append(s)
         y = 80
         # self.background()
         l = len(moves)
+        # print(l, self.move)
         if l < 15:
-            moves.extend(['']*(15-l))
-        elif 9 < self.move < len(moves) - 8:
+            moves.extend([' '*20]*(15-l))
+            # print("extending")
+        elif 8 <= int(self.move) < len(moves) - 8:
             moves = moves[int(self.move)-8: int(self.move)+8]
-        elif self.move < 9:
+            # print("autoscrolling")
+        elif int(self.move) < 8:
             moves = moves[:15]
-        else:
-            moves = moves[-15:]
+            # print("trimming")
+        # else:
+        #     print("nothing")
+        moves = moves[-15:]
         for move in moves:
             self.render_text(move, (None, y), True)
             y += 30
@@ -149,10 +174,9 @@ class GUI:
             left = left_boundary + (right_boundary - left_boundary - l) // 2
             pos = (left, pos[1])
         font = self.font_small if small else self.font
-        print(pos)
         rendered = font.render(text, True, (255, 255, 255), (21, 21, 21))
         brendered = font.render('G'*100, True, (21, 21, 21), (21, 21, 21))
-        self.screen.blit(brendered, (left_boundary, pos[1]))
+        self.screen.blit(brendered, (left_boundary-5, pos[1]))
         self.screen.blit(rendered, pos)
 
 
@@ -209,9 +233,13 @@ class GUI:
         self.screen.fill((21, 21, 21))
 
 
-    @staticmethod
-    def refresh():
+    # @staticmethod
+    def refresh(self):
         pygame.display.update()
+        last_refresh = time.time()
+        with open("log", 'a+') as fout:
+            print(60/(last_refresh-self.last_refresh), "fps", file=fout)
+        self.last_refresh = last_refresh
 
 
     def get_coords(self, x, y):
@@ -285,10 +313,14 @@ class GUI:
             self.draw_promote_menu(end)
         elif piece is not None and not self.is_promoting:
             move = chess.Move(self.from_square(*beg), self.from_square(*end))
+            board = self.board.copy()
             try:
-                self.board.push_uci(str(move))
+                move = board.push_uci(str(move))
+                self.node = self.node.add_main_variation(move)
+                self.move += .5
             # Raises ValueError if the move is illegal
             except ValueError:
+                self.background()
                 return
             self.set_board()
             self.piece_at[beg] = None
@@ -297,7 +329,6 @@ class GUI:
             self.draw_checked()
             # self.set_board()
             self.clear_variation()
-            self.render_history()
 
 
     def draw_promote_menu(self, coords, in_focus=None):
@@ -331,9 +362,12 @@ class GUI:
     def move_back(self):
         """Goes back one half move in history"""
         try:
-            self.node = self.node.parent
+            node = self.node.parent
         except AttributeError:
             return
+        if node is None:
+            return
+        self.node = node
         self.move -= .5
         self.set_board()
 
@@ -382,16 +416,26 @@ class GUI:
 
         Features:
           * Highlights the square in promotion menu
+          * Dragging pieces
 
-        :param coords: the processed coordinates of the click
+        :param coords: the raw coordinates of the click
         :returns: None
         """
+        global SQUARE_SIZE
+        p_coords = self.receive_coords(*coords)
         if self.is_promoting:
             try:
-                in_focus = self.promo_coords.index(coords)
+                in_focus = self.promo_coords.index(p_coords)
             except IndexError:
                 in_focus = None
             self.draw_promote_menu(self.promo_coords[0], in_focus)
+
+        elif self.button_pressed[1]:
+            piece = self.piece_at.get(self.beg_click, None)
+            if piece is not None:
+                self.background()
+                self.draw_square(*self.beg_click)
+                self.screen.blit(self.piece_to_img[piece], (coords[0]-SQUARE_SIZE//2, coords[1]-SQUARE_SIZE//2))
 
 
     def __call__(self):
@@ -402,6 +446,7 @@ class GUI:
                     if event.type != 4:
                         print(repr(event))
                     if event.type == 2:
+                        self.key_pressed[event.key] = True
                         # Go back if left arrow is pressed
                         if event.key == 276:
                             self.move_back()
@@ -412,22 +457,42 @@ class GUI:
                             self.flip()
                         elif event.unicode == 's':
                             self.database.save()
+                        elif event.key == 110 and self.key_pressed[306]:
+                            print("creating")
+                            self.database.add()
+                            self.game = len(self.database)-1
+                            self.node = self.database[self.game]
+                            self.background()
+                        elif event.unicode == 'n':
+                            print("next game", self.key_pressed[306])
+                            self.node = self.database[self.game+1]
+                            self.game += 1
+                            self.background()
+                        elif event.unicode == 'b':
+                            self.node = self.database[self.game-1]
+                            self.game -= 1
+                            self.background()
                         elif event.unicode == 'q':
                             exit()
-                    if event.type == 4:
-                        self.mouse_over(self.receive_coords(*event.pos))
-                    if event.type == 5 and event.button == 1:
+                    elif event.type == 3:
+                        self.key_pressed[event.key] = False
+                    elif event.type == 4:
+                        self.mouse_over(event.pos)
+                    elif event.type == 5 and event.button == 1:
+                        self.button_pressed[1] = True
                         beg = self.receive_coords(*event.pos)
-                    if event.type == 6 and event.button == 1:
+                        self.beg_click = beg[:]
+                    elif event.type == 6 and event.button == 1:
+                        self.button_pressed[1] = False
                         end = self.receive_coords(*event.pos)
                         if beg == end:
                             self.click(beg)
                         else:
                             self.draw_move(beg, end)
                         beg, end = None, None
-                    if event.type == pygame.QUIT:
+                    elif event.type == pygame.QUIT:
                         exit()
-            except ValueError:
+            except (ValueError, IndexError, AttributeError):
                 pass
             self.refresh()
 
