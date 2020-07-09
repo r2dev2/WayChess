@@ -1,4 +1,5 @@
 import math
+import re
 
 import pygame
 import pygame.gfxdraw 
@@ -55,9 +56,17 @@ class Arrow:
         self.color = color
 
     @classmethod
-    def from_str(cls, string):
+    def one_from_str(cls, string):
         matches = re.findall(r"\([^\(\)]+\)", string[6:-1])
         return cls(*map(eval, matches))
+
+    @classmethod
+    def set_from_str(cls, string):
+        try:
+            l = re.findall(r"Arrow\([^a-z]+\)\)", re.findall("Arrows: (.+)", string)[-1])
+            return {cls.one_from_str(a) for a in l}
+        except IndexError:
+            return set()
 
     def __hash__(self):
         return hash((self.beg, self.end, self.color))
@@ -74,6 +83,11 @@ class Arrow:
 
 class GUI:
     @property
+    def arrows(self):
+        return Arrow.set_from_str(self.node.comment)
+
+
+    @property
     def move_arrow_color(self):
         if self.board.turn:
             return (0, 0, 0, 100)
@@ -84,6 +98,29 @@ class GUI:
         if self.key_pressed[306]:
             return (0, 255, 0, 150)
         return (255, 143, 0, 150)
+
+
+    def write_arrows(self, arrows):
+        if "Arrows: " not in self.node.comment:
+            start = len(self.node.comment)
+        else:
+            start = self.node.comment.rfind("Arrows: ")
+        self.node.comment = self.node.comment[:start] + "Arrows: " + ' '.join(map(str, arrows))
+
+
+    def add_arrow(self, arrow):
+        arrows = self.arrows
+        assert arrow not in arrows, "Shouldn't be calling add_arrow"
+        arrows.add(arrow)
+        self.write_arrows(arrows)
+
+
+    def remove_arrow(self, arrow):
+        arrows = self.arrows
+        assert arrow in self.arrows, "Shouldn't be calling remove_arrow"
+        arrows.remove(arrow)
+        self.write_arrows(arrows)
+
 
     def draw_raw_arrow(self, start, end, color=None):
         """
@@ -108,18 +145,12 @@ class GUI:
         """
         assert all(0 <= val <= 7 for val in [*start, *end])
         a = Arrow(start, end, self.arrow_color) 
-        if a in self.arrows.get(self.move, set()):
+        if a in self.arrows:
             print(a)
-            self.arrows[self.move].remove(a)
+            self.remove_arrow(a)
         else:
-            try:
-                self.arrows[self.move].add(a)
-            except KeyError:
-                self.arrows[self.move] = {a}
-            if "Arrows: " not in self.node.comment:
-                self.node.comment += " Arrows: "
-            self.node.comment += repr(a)
-        print(self.arrows[self.move])
+            self.add_arrow(a)
+        # print(self.arrows[self.move])
         self.set_arrows()
 
 
@@ -127,7 +158,7 @@ class GUI:
         """Render all arrows"""
         # print(self.arrows)
         SQUARE_SIZE = self.SQUARE_SIZE
-        for arrow in self.arrows.get(self.move, set()):
+        for arrow in self.arrows:
             start = arrow.beg
             end = arrow.end
             s = tuple(i+SQUARE_SIZE//2 for i in self.get_coords(*start))

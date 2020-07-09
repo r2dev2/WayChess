@@ -70,7 +70,7 @@ class GUI(lib.GUI):
         self.node = self.database[self.game]
         self.move = 0
         self.key_pressed = {i: False for i in range(1000)}
-        self.arrows = dict()
+        # self.arrows = dict()
         self.button_pressed = {
                 1: False,
                 2: False,
@@ -79,6 +79,7 @@ class GUI(lib.GUI):
         self.beg_click = (0, 0)
         self.is_promoting = False
         self.white = True
+        self.blurred = False
         self.move_pattern = re.compile(r"(\d+\. \S+ \S*)")
         self.moves_popped = []
         self.move_arrow = None
@@ -100,11 +101,24 @@ class GUI(lib.GUI):
 
         self.set_board()
         self.refresh()
-        
+
 
     def background(self):
         self.screen.fill((21, 21, 21))
+        self.blurred = False
         self.set_board()
+
+
+    def blur(self):
+        if not self.blurred:
+            BS = self.SQUARE_SIZE * 8
+            pygame.gfxdraw.filled_polygon(
+                    self.screen,
+                    ((0, 0), (0, BS),
+                     (BS,BS), (BS, 0)),
+                    (255, 255, 255, 100)
+            )
+            self.blurred = True
 
 
     @staticmethod
@@ -145,11 +159,15 @@ class GUI(lib.GUI):
             # ValueError raised if coords not found
             except ValueError:
                 print("Coords not found")
+                self.is_promoting = False
+                self.set_board()
                 return
             idx = coords[0] if self.board.turn else 7-coords[0]
             end = 8 if self.board.turn else 1
             file = "abcdefgh"[idx]
-            self.board.push_san(f"{file}{end}={choice}")
+            move = self.board.push_san(f"{file}{end}={choice}")
+            print("Trying", f"{file}{end}={choice}")
+            self.node = self.node.add_main_variation(move)
             self.is_promoting = False
             self.set_board()
 
@@ -185,7 +203,7 @@ class GUI(lib.GUI):
         if self.is_promoting:
             try:
                 in_focus = self.promo_coords.index(p_coords)
-            except IndexError:
+            except ValueError:
                 in_focus = None
             self.draw_promote_menu(self.promo_coords[0], in_focus)
 
@@ -233,7 +251,12 @@ class GUI(lib.GUI):
         :return: None
         """
         self.key_pressed[event.key] = True
-        ctrl = self.key_pressed[306] * -1
+        key = event.key
+
+        # If ctrl is pressed, multiply key by -1
+        if any(self.key_pressed[i] for i in (305, 306)):
+            key *= -1
+
         try:
             dispatch_table = self.key_pressed_dispatch
         except AttributeError:
@@ -249,7 +272,7 @@ class GUI(lib.GUI):
             }
             dispatch_table = self.key_pressed_dispatch
 
-        dispatch_table[event.key]()
+        dispatch_table[key]()
 
 
     def key_release(self, event):
@@ -294,7 +317,7 @@ class GUI(lib.GUI):
                         beg, end = None, None
                     elif event.type == pygame.QUIT:
                         exit()
-            except (AssertionError, AttributeError, IndexError, TypeError, ValueError):
+            except (AssertionError, AttributeError, KeyError, IndexError, TypeError, ValueError):
                 pass
             self.refresh()
 

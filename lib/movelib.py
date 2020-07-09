@@ -30,6 +30,7 @@ class GUI:
         piece = self.piece_at.get(beg, None)
         if piece in 'pP' and end[1] in (0, 7):
             self.is_promoting = True
+            self.set_arrows()
             self.draw_promote_menu(end)
         elif piece is not None and not self.is_promoting:
             move = chess.Move(self.from_square(*beg), self.from_square(*end))
@@ -65,9 +66,11 @@ class GUI:
         og_coords = coords[0], coords[1]
         self.promo_coords = []
 
-        for piece in pieces:
+        self.blur()
+
+        for i, piece in enumerate(pieces):
             a_coords = self.get_coords(*coords)
-            if piece != in_focus:
+            if i != in_focus:
                 self.screen.blit(self.promo_back, a_coords)
             else:
                 self.screen.blit(self.promo_high, a_coords)
@@ -77,6 +80,7 @@ class GUI:
                 coords = (coords[0], coords[1] + 1)
             else:
                 coords = (coords[0], coords[1] - 1)
+
 
 
     def move_back(self):

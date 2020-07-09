@@ -32,7 +32,7 @@ class GUI:
             self.draw_piece(piece, (rank, file))
         self.render_history()
         self.set_arrows()
-        print("[COMMENT]", self.node.comment)
+        # print("[COMMENT]", self.node.comment)
 
 
     def whereis(self, piece):
