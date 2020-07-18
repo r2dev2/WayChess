@@ -30,7 +30,7 @@ class GUI:
             rank, file = self.to_square(i)
             piece = p.symbol()
             self.draw_piece(piece, (rank, file))
-        self.render_history()
+        self.right_panel()
         self.set_arrows()
         # print("[COMMENT]", self.node.comment)
 
@@ -63,6 +63,7 @@ class GUI:
         """Flips the orientation of the board"""
         self.white = not self.white
         self.set_board()
+        self.update_explorer()
 
 
     def get_coords(self, x, y):

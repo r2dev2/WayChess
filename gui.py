@@ -83,11 +83,14 @@ class GUI(lib.GUI):
         self.move_pattern = re.compile(r"(\d+\. \S+ \S*)")
         self.moves_popped = []
         self.move_arrow = None
+        self.show_explorer = False
+        self.explorer_fen = self.board.fen()
         
-        self.display_size = display_size
-        self.screen = pygame.display.set_mode(display_size, pygame.NOFRAME)
+        self._display_size = display_size
+        self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
         self.font = pygame.font.Font("freesansbold.ttf", 32)
         self.font_small = pygame.font.Font(pygame.font.match_font("calibri"), 24)
+        self.font_xs = pygame.font.Font(pygame.font.match_font("calibri"), 12)
         self.last_refresh = time.time()
 
         pygame.display.set_caption("WayChess")
@@ -101,6 +104,29 @@ class GUI(lib.GUI):
 
         self.set_board()
         self.refresh()
+
+        # self.render_raw_text("30%", (190, 570), self.font_xs, (255-21, 255-21, 255-21))
+        # self.explorer()
+        # self.refresh()
+
+
+    @property
+    def display_size(self):
+        return self._display_size
+
+
+    @display_size.setter
+    def display_size(self, value):
+        self._diplay_size = value
+        self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
+        self.background()
+
+
+    def right_panel(self):
+        if not self.show_explorer:
+            self.render_history()
+        else:
+            self.render_explorer()
 
 
     def background(self):
@@ -268,6 +294,7 @@ class GUI(lib.GUI):
                     -110: self.create_game,  # ctrl n
                     110: self.next_game,     # n
                     98: self.previous_game,  # b
+                    101: self.explorer,      # e
                     113: exit                # q
             }
             dispatch_table = self.key_pressed_dispatch
@@ -283,6 +310,8 @@ class GUI(lib.GUI):
         :return: None
         """
         self.key_pressed[event.key] = False
+        # if event.key == 101:
+        #     self.clear_explorer()
 
 
     def __call__(self):
@@ -315,10 +344,14 @@ class GUI(lib.GUI):
                             else:
                                 self.draw_move(beg, end)
                         beg, end = None, None
+                    elif event.type == 16:
+                        self.display_size = event.size
                     elif event.type == pygame.QUIT:
                         exit()
-            except (AssertionError, AttributeError, KeyError, IndexError, TypeError, ValueError):
+            except (AssertionError, AttributeError, KeyError, IndexError, TypeError, ValueError) as e:
+                # print(e)
                 pass
+            # self.render_raw_text("30%", (190, 570), self.font_xs, (255, 255, 255))
             self.refresh()
 
 

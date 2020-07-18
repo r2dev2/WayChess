@@ -151,10 +151,10 @@ class GUI:
         else:
             self.add_arrow(a)
         # print(self.arrows[self.move])
-        self.set_arrows()
+        self.set_arrows(True)
 
 
-    def set_arrows(self):
+    def set_arrows(self, drawing=False):
         """Render all arrows"""
         # print(self.arrows)
         SQUARE_SIZE = self.SQUARE_SIZE
@@ -166,4 +166,6 @@ class GUI:
             self.draw_raw_arrow(s, e, arrow.color)
         if self.move_arrow is not None:
             self.draw_raw_arrow(*self.move_arrow, self.move_arrow_color)
+        if not drawing:
+            self.update_explorer()
 

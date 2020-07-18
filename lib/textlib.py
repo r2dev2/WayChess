@@ -1,9 +1,15 @@
 import re
 
 import chess
+import pygame.gfxdraw as gfx
 
 
 class GUI:
+    moves_panel = [
+            (580, 65), (735, 65),
+            (735, 555), (580, 555)
+    ]
+
     def render_history(self):
         """
         Renders the history with autoscroll.
@@ -18,6 +24,7 @@ class GUI:
         for i in range(len(moves)):
             if i == int(self.move-.5):
                 moves[i] = '  ' + moves[i]
+        gfx.filled_polygon(self.screen, GUI.moves_panel, (21, 21, 21))
         # beg = self.node.game().variations[0]
         # moves = []
         # buff = []
@@ -50,8 +57,10 @@ class GUI:
             moves.extend([' '*20]*(15-l))
             # print("extending")
         elif 8 <= int(self.move) < len(moves) - 8:
-            moves = moves[int(self.move-.5)-8: int(self.move-.5)+8]
-            # print("autoscrolling")
+            b = int(self.move-.5)-8
+            b = 0 if b<0 else b
+            moves = moves[b: int(self.move-.5)+8]
+            # print("autoscrolling", len(moves), b, int(self.move-.5)+8)
         elif int(self.move) < 8:
             moves = moves[:15]
             # print("trimming")
@@ -74,7 +83,12 @@ class GUI:
             pos = (left, pos[1])
         font = self.font_small if small else self.font
         rendered = font.render(text, True, (255, 255, 255), (21, 21, 21))
-        brendered = font.render('G'*100, True, (21, 21, 21), (21, 21, 21))
-        self.screen.blit(brendered, (left_boundary-5, pos[1]))
+        # brendered = font.render('G'*100, True, (21, 21, 21), (21, 21, 21))
+        # self.screen.blit(brendered, (left_boundary-5, pos[1]))
+        self.screen.blit(rendered, pos)
+
+
+    def render_raw_text(self, text, pos, font, color):
+        rendered = font.render(text, True, color, (21, 21, 21))
         self.screen.blit(rendered, pos)
 

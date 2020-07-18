@@ -28,7 +28,10 @@ class GUI:
         :return: None
         """
         piece = self.piece_at.get(beg, None)
-        if piece in 'pP' and end[1] in (0, 7):
+        if \
+                piece in 'pP' \
+                and ((end[1] == 0 and self.board.turn) \
+                or (end[1] == 7 and not self.board.turn)):
             self.is_promoting = True
             self.set_arrows()
             self.draw_promote_menu(end)
@@ -44,6 +47,7 @@ class GUI:
                 self.background()
                 return
             self.set_board()
+            self.update_explorer()
             # self.piece_at[beg] = None
             # self.draw_square(*beg)
             # self.draw_piece(piece, end)
@@ -94,6 +98,7 @@ class GUI:
         self.node = node
         self.move -= .5
         self.set_board()
+        self.update_explorer()
 
 
     def move_forward(self):
@@ -104,4 +109,5 @@ class GUI:
             return
         self.move += .5
         self.set_board()
+        self.update_explorer()
 
