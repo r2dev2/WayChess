@@ -97,6 +97,15 @@ def analysis(engine, display, board=chess.Board(), end=lambda:False):
 #             if end():
 #                 break
 
+def wrap_iter(string, length=150):
+    # yield string[:length]
+    for i in range(len(string)//length+1):
+        yield string[length*i: length*(i+1)]
+
+
+def wrap(string, length=150):
+    return '\n'.join(wrap_iter(string, length))
+
 
 class GUIAnalysis(AnalysisDisplay):
     def __init__(self, gui):
@@ -111,11 +120,12 @@ class GUIAnalysis(AnalysisDisplay):
 
     def raw_display(self, i, info):
         sx, sy = 40, 595
-        self.gui.render_raw_text(
-                str(i) + ' ' + info,
-                (sx, sy+i*50), self.gui.font_engine,
-                (234, 234, 234)
-        )
+        for j, text in enumerate(wrap_iter(str(i) + ' ' + info)):
+            self.gui.render_raw_text(
+                    text,
+                    (sx, sy+i*50+j*20), self.gui.font_engine,
+                    (234, 234, 234)
+            )
 
 
     def post_display(self):
@@ -151,6 +161,7 @@ class GUI:
 
     def stop_analysis(self):
         self.is_analysing = False
+        self.analysis_service.join()
     
 
 def main():

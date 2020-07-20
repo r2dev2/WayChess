@@ -333,7 +333,10 @@ class GUI(lib.GUI):
     
     def exit(self):
         self.stop_analysis()
-        self.engine.quit()
+        try:
+            self.engine.quit()
+        except:
+            pass
         sys.exit()
 
 
@@ -383,7 +386,10 @@ def main():
         gui = GUI(img)
         gui()
     except:
-        gui.engine.quit()
+        try:
+            gui.engine.quit()
+        except:
+            pass
 
 if __name__ == "__main__":
     main()
