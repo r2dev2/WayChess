@@ -7,3 +7,4 @@ gui.spec
 build/
 dist/
 playground/
+*.swp
