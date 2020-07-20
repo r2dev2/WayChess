@@ -1,4 +1,9 @@
 __pycache__/
 *.pgn
 log
+engines/
 
+gui.spec
+build/
+dist/
+playground/

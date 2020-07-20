@@ -8,6 +8,14 @@ class GUI:
         This accesses the board at the current node
         """
         return self.node.board()
+
+
+    @property
+    def fen(self):
+        """
+        Gets the fen of the current node
+        """
+        return self.board.fen()
     
 
     def set_board(self):

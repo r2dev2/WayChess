@@ -7,6 +7,7 @@ import sys
 import time
 
 import chess
+import chess.engine
 import pygame
 import pygame.gfxdraw 
 
@@ -67,7 +68,7 @@ class GUI(lib.GUI):
         self.piece_at = dict()
         self.database = Database(pgn_path)
         self.game = 0
-        self.node = self.database[self.game]
+        self._node = self.database[self.game]
         self.move = 0
         self.key_pressed = {i: False for i in range(1000)}
         # self.arrows = dict()
@@ -88,8 +89,9 @@ class GUI(lib.GUI):
         
         self._display_size = display_size
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
-        self.font = pygame.font.Font("freesansbold.ttf", 32)
+        self.font = pygame.font.Font(pygame.font.match_font("calibri"), 32)
         self.font_small = pygame.font.Font(pygame.font.match_font("calibri"), 24)
+        self.font_engine = pygame.font.Font(pygame.font.match_font("calibri"), 18)
         self.font_xs = pygame.font.Font(pygame.font.match_font("calibri"), 12)
         self.last_refresh = time.time()
 
@@ -105,9 +107,24 @@ class GUI(lib.GUI):
         self.set_board()
         self.refresh()
 
+        self.set_analysis()
+        self.refresh()
+
         # self.render_raw_text("30%", (190, 570), self.font_xs, (255-21, 255-21, 255-21))
         # self.explorer()
         # self.refresh()
+
+
+    @property
+    def node(self):
+        return self._node
+
+
+    @node.setter
+    def node(self, value):
+        self._node = value
+        self.stop_analysis()
+        self.set_analysis()
 
 
     @property
@@ -295,7 +312,7 @@ class GUI(lib.GUI):
                     110: self.next_game,     # n
                     98: self.previous_game,  # b
                     101: self.explorer,      # e
-                    113: exit                # q
+                    113: self.exit           # q
             }
             dispatch_table = self.key_pressed_dispatch
 
@@ -312,6 +329,12 @@ class GUI(lib.GUI):
         self.key_pressed[event.key] = False
         # if event.key == 101:
         #     self.clear_explorer()
+
+    
+    def exit(self):
+        self.stop_analysis()
+        self.engine.quit()
+        sys.exit()
 
 
     def __call__(self):
@@ -347,7 +370,7 @@ class GUI(lib.GUI):
                     elif event.type == 16:
                         self.display_size = event.size
                     elif event.type == pygame.QUIT:
-                        exit()
+                        self.exit()
             except (AssertionError, AttributeError, KeyError, IndexError, TypeError, ValueError) as e:
                 # print(e)
                 pass
@@ -355,7 +378,13 @@ class GUI(lib.GUI):
             self.refresh()
 
 
+def main():
+    try:
+        gui = GUI(img)
+        gui()
+    except:
+        gui.engine.quit()
+
 if __name__ == "__main__":
-    gui = GUI(img)
-    gui()
-    
+    main()
+
