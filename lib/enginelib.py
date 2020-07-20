@@ -162,6 +162,16 @@ class GUI:
     def stop_analysis(self):
         self.is_analysing = False
         self.analysis_service.join()
+
+    def engine_callback(self):
+        try:
+            if not self.show_engine:
+                self.set_analysis()
+            else:
+                self.stop_analysis()
+        except AttributeError:
+            self.show_engine = True
+            self.set_analysis()
     
 
 def main():

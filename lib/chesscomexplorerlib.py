@@ -79,14 +79,17 @@ class Explorer:
             "totalGames": total games in this variation
         }
         """
-        r = requests.post(
-                "https://www.chess.com/callback/explorer/move",
-                json={
-                    "gameSource": "master",
-                    "nextFen": fen
-                }
-            )
-        return r.json()["suggestedMoves"]
+        try:
+            r = requests.post(
+                    "https://www.chess.com/callback/explorer/move",
+                    json={
+                        "gameSource": "master",
+                        "nextFen": fen
+                    }
+                )
+            return r.json()["suggestedMoves"]
+        except:
+            return []
 
     
     @staticmethod

@@ -22,8 +22,10 @@ pgn_path = pwd / "test.pgn"
 try:
     if os.path.isfile(sys.argv[1]):
         pgn_path = sys.argv[1]
+    else:
+        raise IndexError
 except IndexError:
-    pass
+    pgn_path = input("Please enter a pgn path\n")
 
 pygame.init()
 
@@ -107,8 +109,6 @@ class GUI(lib.GUI):
         self.set_board()
         self.refresh()
 
-        self.set_analysis()
-        self.refresh()
 
         # self.render_raw_text("30%", (190, 570), self.font_xs, (255-21, 255-21, 255-21))
         # self.explorer()
@@ -304,15 +304,16 @@ class GUI(lib.GUI):
             dispatch_table = self.key_pressed_dispatch
         except AttributeError:
             self.key_pressed_dispatch = {
-                    276: self.move_back,     # right arrow key
-                    275: self.move_forward,  # left arrow key
-                    102: self.flip,          # f
-                    115: self.database.save, # s
-                    -110: self.create_game,  # ctrl n
-                    110: self.next_game,     # n
-                    98: self.previous_game,  # b
-                    101: self.explorer,      # e
-                    113: self.exit           # q
+                    276: self.move_back,       # right arrow key
+                    275: self.move_forward,    # left arrow key
+                    102: self.flip,            # f
+                    115: self.database.save,   # s
+                    -110: self.create_game,    # ctrl n
+                    110: self.next_game,       # n
+                    98: self.previous_game,    # b
+                    101: self.engine_callback, # e
+                    120: self.explorer,        # x
+                    113: self.exit             # q
             }
             dispatch_table = self.key_pressed_dispatch
 
@@ -330,7 +331,7 @@ class GUI(lib.GUI):
         # if event.key == 101:
         #     self.clear_explorer()
 
-    
+
     def exit(self):
         self.stop_analysis()
         try:
