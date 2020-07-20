@@ -129,7 +129,8 @@ class GUIAnalysis(AnalysisDisplay):
 
 
     def post_display(self):
-        self.gui.refresh()
+        pass
+        # self.gui.refresh()
 
 
 class GUI:

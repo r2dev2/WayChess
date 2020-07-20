@@ -123,8 +123,12 @@ class GUI(lib.GUI):
     @node.setter
     def node(self, value):
         self._node = value
-        self.stop_analysis()
-        self.set_analysis()
+        try:
+            if self.is_analysing:
+                self.stop_analysis()
+                self.set_analysis()
+        except AttributeError:
+            pass
 
 
     @property
@@ -318,6 +322,7 @@ class GUI(lib.GUI):
             dispatch_table = self.key_pressed_dispatch
 
         dispatch_table[key]()
+        print("Called", key)
 
 
     def key_release(self, event):
@@ -376,8 +381,7 @@ class GUI(lib.GUI):
                     elif event.type == pygame.QUIT:
                         self.exit()
             except (AssertionError, AttributeError, KeyError, IndexError, TypeError, ValueError) as e:
-                # print(e)
-                pass
+                print(e)
             # self.render_raw_text("30%", (190, 570), self.font_xs, (255, 255, 255))
             self.refresh()
 

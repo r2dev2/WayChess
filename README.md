@@ -1,5 +1,7 @@
 # WayChess
 
+![demo](img/demo/general_screen.png)
+
 ## Usage
 
 ```
@@ -22,5 +24,5 @@ python3 gui.py
 
 ## Progress
 
-Navigation is controlled by keybindings instead of button right now. Comments, variations, and annotations have yet to be added. The chess.com database explorer (doesn't need to login) and the engine have been somewhat stably implemented.
+Navigation is controlled by keybindings instead of button right now. Comments, variations, and annotations have yet to be added. The chess.com database explorer (doesn't need to login) and the engine have been somewhat stably implemented. The database and engine cause slowdowns which need to be investigated.
 
