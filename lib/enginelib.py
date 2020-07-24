@@ -1,3 +1,4 @@
+import time
 import threading
 import os
 
@@ -143,7 +144,9 @@ class GUI:
         gfx.filled_polygon(self.screen, GUI.engine_panel, (21, 21, 21))
 
     def set_analysis(self):
+        beg = time.time()
         if not hasattr(self, "engine"):
+            print("Opening engine")
             self.engine = chess.engine.SimpleEngine.popen_uci("Engines/stockfish_bmi2.exe")
             # self.engine.configure({"MultiPV": 3})
         # _, self.engine = await chess.engine.popen_uci("Engines/stockfish_bmi2.exe")
@@ -158,18 +161,38 @@ class GUI:
                 daemon=True
         )
         self.analysis_service.start()
-        print("started")
+        print("set analysis callback started in", time.time()-beg, "seconds")
+
+    def stop_analysis_task(self):
+        self.is_analysing = False
+        self.show_engine = False
+        try:
+            beg = time.time()
+            self.analysis_service.join()
+            print(time.time()-beg, "seconds taken to stop analysis")
+        except AttributeError:
+            return
 
     def stop_analysis(self):
-        self.is_analysing = False
-        self.analysis_service.join()
+        try:
+            threading.Thread(self.stop_analysis_task).start()
+        except Exception as e:
+            print(e)
 
     def engine_callback(self):
+        # try:
+            # print("calling engine callback", self.show_engine)
+        # except AttributeError:
+            # print("calling engine callback", "undefined")
         try:
             if not self.show_engine:
+                # print("gone down engine_callback")
+                self.show_engine = True
                 self.set_analysis()
             else:
+                # print("stopping analysis")
                 self.stop_analysis()
+                # print("show_engine changed to", self.show_engine)
         except AttributeError:
             self.show_engine = True
             self.set_analysis()

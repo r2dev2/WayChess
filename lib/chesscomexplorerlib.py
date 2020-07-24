@@ -1,3 +1,5 @@
+from threading import Thread
+
 import chess
 import pygame.gfxdraw as gfx
 import requests
@@ -118,14 +120,19 @@ class GUI:
         self.explorer = not self.explorer
 
 
+    def update_explorer_task(self):
+        ex = Explorer(self.board.fen())
+        self._explorer = ex
+        ex.render(self)
+
+
     def update_explorer(self):
         if self.explorer:
             if self.board.fen() != self.explorer_fen or not hasattr(self, "_explorer"):
-                ex = Explorer(self.board.fen())
-                self._explorer = ex
+                Thread(target=self.update_explorer_task).start()
             else:
                 ex = self._explorer
-            ex.render(self)
+                ex.render(self)
             self.explorer_fen = self.board.fen()
 
 
