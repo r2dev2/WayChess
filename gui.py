@@ -8,6 +8,7 @@ import time
 
 import chess
 import chess.engine
+import cpuinfo
 import pygame
 import pygame.gfxdraw 
 
@@ -16,16 +17,31 @@ import lib
 
 
 SQUARE_SIZE = 68
-pwd = Path(os.getcwd())
+pwd = Path.home() / ".waychess"
 img = pwd / "img"
 pgn_path = pwd / "test.pgn"
-try:
-    if os.path.isfile(sys.argv[1]):
-        pgn_path = sys.argv[1]
-    else:
-        raise IndexError
-except IndexError:
-    pgn_path = input("Please enter a pgn path\n")
+
+
+STOCKFISH_LOCATION = {
+    "win32": r"stockfish\stockfish-11-win\Windows\stockfish_20011801_x64{}.exe",
+    "linux": "stockfish/stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
+    "linux32": "stockfish/stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
+    "darwin": "stockfish/stockfish-11-mac/Mac/stockfish-11-{}"
+}
+
+
+def get_engine_path(pwd):
+    toadd = "_bmi2" if sys.platform != "darwin" else "bmi2"
+    info = cpuinfo.get_cpu_info()["brand"]
+    # Intel 2nd gen
+    if '-2' in info:
+        toadd = ''
+    # Intel 3rd gen
+    if '-3' in info:
+        toadd = "_modern" if sys.platform != "darwin" else "modern"
+    return pwd / "engines" / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
+
+
 
 pygame.init()
 
@@ -88,6 +104,8 @@ class GUI(lib.GUI):
         self.move_arrow = None
         self.show_explorer = False
         self.explorer_fen = self.board.fen()
+        self.engine_path = engine_path
+        self.create_thread_manager()
         
         self._display_size = display_size
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
@@ -338,6 +356,7 @@ class GUI(lib.GUI):
 
 
     def exit(self):
+        self.is_exiting = True
         self.stop_analysis()
         try:
             self.engine.quit()
@@ -397,5 +416,15 @@ def main():
             pass
 
 if __name__ == "__main__":
+    freeze_support()
+    # Get pgn path
+    try:
+        if os.path.isfile(sys.argv[1]):
+            pgn_path = sys.argv[1]
+        else:
+            raise IndexError
+    except IndexError:
+        pgn_path = input("Please enter a pgn path\n")
+    engine_path = get_engine_path(pwd)
     main()
 

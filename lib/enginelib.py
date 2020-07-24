@@ -147,7 +147,12 @@ class GUI:
         beg = time.time()
         if not hasattr(self, "engine"):
             print("Opening engine")
-            self.engine = chess.engine.SimpleEngine.popen_uci("Engines/stockfish_bmi2.exe")
+            try:
+                self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
+            except Exception as e:
+                print(self.engine_path)
+                print("Failed due to", e)
+                self.exit()
             # self.engine.configure({"MultiPV": 3})
         # _, self.engine = await chess.engine.popen_uci("Engines/stockfish_bmi2.exe")
         self.is_analysing = True
@@ -156,11 +161,14 @@ class GUI:
         def get_end():
             nonlocal self
             return not self.is_analysing
-        self.analysis_service = threading.Thread(target=analysis,
+        # self.analysis_service = threading.Thread(target=analysis,
+        self.t_manager.submit(
+                threading.Thread(target=analysis,
                 args = (self.engine, self.analysis_display, self.board, get_end),
                 daemon=True
+            )
         )
-        self.analysis_service.start()
+        # self.analysis_service.start()
         print("set analysis callback started in", time.time()-beg, "seconds")
 
     def stop_analysis_task(self):

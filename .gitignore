@@ -3,8 +3,11 @@ __pycache__/
 log
 engines/
 
-gui.spec
+*.spec
 build/
 dist/
+installers/
 playground/
 *.swp
+
+stockfish/

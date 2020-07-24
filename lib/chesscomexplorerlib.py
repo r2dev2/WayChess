@@ -129,7 +129,7 @@ class GUI:
     def update_explorer(self):
         if self.explorer:
             if self.board.fen() != self.explorer_fen or not hasattr(self, "_explorer"):
-                Thread(target=self.update_explorer_task).start()
+                self.t_manager.submit(Thread(target=self.update_explorer_task))
             else:
                 ex = self._explorer
                 ex.render(self)

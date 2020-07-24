@@ -8,6 +8,7 @@
 git clone https://github.com/r2dev2bb8/WayChess.git
 cd WayChess
 python3 -m pip install -r requirements.txt
+python3 installer.py
 python3 gui.py
 ```
 
