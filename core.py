@@ -6,12 +6,15 @@ class Database:
     def __init__(self, file):
         self.file = file
         self.games = []
-        with open(file, 'r') as fin:
-            game = True
-            while game is not None:
-                self.games.append(game)
-                game = chess.pgn.read_game(fin)
-            self.games.pop(0)
+        try:
+            with open(file, 'r') as fin:
+                game = True
+                while game is not None:
+                    self.games.append(game)
+                    game = chess.pgn.read_game(fin)
+                self.games.pop(0)
+        except FileNotFoundError:
+            self.add()
 
 
     def add(self, item=chess.pgn.Game()):

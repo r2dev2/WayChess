@@ -102,9 +102,13 @@ def download_img():
 
 if __name__ == "__main__":
     freeze_support()
-    create_dir(pwd)
-    downloadStockfish()
-    print("Stockfish has been installed at", findStockfish())
-    print("Downloading default images")
-    download_img()
+    try:
+        create_dir(pwd)
+        downloadStockfish()
+        print("Stockfish has been installed at", findStockfish())
+        print("Downloading default images")
+        download_img()
+    except Exception as e:
+        print(e)
+        input("Enter to continue (Failed installation)")
 
