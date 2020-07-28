@@ -89,7 +89,7 @@ class GUI:
     def draw_square(self, x, y):
         """Draws the square at the position"""
         coords = self.get_coords(x, y)
-        self.piece_at[coords] = None
+        # self.piece_at[(x, y)] = None
 
         if (x+y) % 2:
             self.screen.blit(self.dark, coords)

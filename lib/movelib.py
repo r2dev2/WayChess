@@ -16,6 +16,7 @@ class GUI:
         else:
             self.draw_square(*position)
         self.screen.blit(self.piece_to_img[piece], self.get_coords(*position))
+        assert all(0 <= val <= 7 for val in position), str(position)
         self.piece_at[position] = piece
 
 
@@ -28,6 +29,7 @@ class GUI:
         :return: None
         """
         piece = self.piece_at.get(beg, None)
+        assert piece is not None, f"{self.piece_at} doesn't have\n\n{beg}"
         if \
                 piece in 'pP' \
                 and ((end[1] == 0 and self.board.turn) \
