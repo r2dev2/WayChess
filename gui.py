@@ -4,26 +4,26 @@ import os
 from pathlib import Path
 import re
 import sys
+import traceback
 import time
 
 import chess
 import chess.engine
 import cpuinfo
 import pygame
-import pygame.gfxdraw 
+import pygame.gfxdraw
 
 from core import Database
 import lib
-
 
 SQUARE_SIZE = 68
 pwd = Path.home() / ".waychess"
 img = pwd / "img"
 pgn_path = pwd / "test.pgn"
 
-
 STOCKFISH_LOCATION = {
-    "win32": r"stockfish\stockfish-11-win\Windows\stockfish_20011801_x64{}.exe",
+    "win32":
+    r"stockfish\stockfish-11-win\Windows\stockfish_20011801_x64{}.exe",
     "linux": "stockfish/stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
     "linux32": "stockfish/stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
     "darwin": "stockfish/stockfish-11-mac/Mac/stockfish-11-{}"
@@ -42,19 +42,18 @@ def get_engine_path(pwd):
     return pwd / "engines" / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
 
 
-
 pygame.init()
 
 load_img = lambda path: pygame.image.load(str(path))
 light = load_img(img / "light.png")
 dark = load_img(img / "dark.png")
 
-
 Arrow = lib.arrowlib.Arrow
 arrow = lib.arrowlib.arrow
 
+
 class GUI(lib.GUI):
-    def __init__(self, img, display_size = (800, 600)):
+    def __init__(self, img, display_size=(800, 600)):
         # Load the images
         self.dark = self.load_img(img / "dark.png")
         self.light = self.load_img(img / "light.png")
@@ -65,20 +64,19 @@ class GUI(lib.GUI):
         white = img / "white"
         black = img / "black"
 
-
         self.piece_to_img = {
-                "K": self.load_img(white / "king.png"),
-                "Q": self.load_img(white / "queen.png"),
-                "R": self.load_img(white / "rook.png"),
-                "B": self.load_img(white / "bishop.png"),
-                "N": self.load_img(white / "knight.png"),
-                "P": self.load_img(white / "pawn.png"),
-                "k": self.load_img(black / "king.png"),
-                "q": self.load_img(black / "queen.png"),
-                "r": self.load_img(black / "rook.png"),
-                "b": self.load_img(black / "bishop.png"),
-                "n": self.load_img(black / "knight.png"),
-                "p": self.load_img(black / "pawn.png")
+            "K": self.load_img(white / "king.png"),
+            "Q": self.load_img(white / "queen.png"),
+            "R": self.load_img(white / "rook.png"),
+            "B": self.load_img(white / "bishop.png"),
+            "N": self.load_img(white / "knight.png"),
+            "P": self.load_img(white / "pawn.png"),
+            "k": self.load_img(black / "king.png"),
+            "q": self.load_img(black / "queen.png"),
+            "r": self.load_img(black / "rook.png"),
+            "b": self.load_img(black / "bishop.png"),
+            "n": self.load_img(black / "knight.png"),
+            "p": self.load_img(black / "pawn.png")
         }
 
         # Initialize internal variables
@@ -90,11 +88,7 @@ class GUI(lib.GUI):
         self.move = 0
         self.key_pressed = {i: False for i in range(1000)}
         # self.arrows = dict()
-        self.button_pressed = {
-                1: False,
-                2: False,
-                3: False
-        }
+        self.button_pressed = {1: False, 2: False, 3: False}
         self.beg_click = (0, 0)
         self.is_promoting = False
         self.white = True
@@ -104,14 +98,17 @@ class GUI(lib.GUI):
         self.move_arrow = None
         self.show_explorer = False
         self.explorer_fen = self.board.fen()
+        self.explorer_cache = dict()
         self.engine_path = engine_path
         self.create_thread_manager()
-        
+
         self._display_size = display_size
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
         self.font = pygame.font.Font(pygame.font.match_font("calibri"), 32)
-        self.font_small = pygame.font.Font(pygame.font.match_font("calibri"), 24)
-        self.font_engine = pygame.font.Font(pygame.font.match_font("calibri"), 18)
+        self.font_small = pygame.font.Font(pygame.font.match_font("calibri"),
+                                           24)
+        self.font_engine = pygame.font.Font(pygame.font.match_font("calibri"),
+                                            18)
         self.font_xs = pygame.font.Font(pygame.font.match_font("calibri"), 12)
         self.last_refresh = time.time()
 
@@ -127,16 +124,13 @@ class GUI(lib.GUI):
         self.set_board()
         self.refresh()
 
-
         # self.render_raw_text("30%", (190, 570), self.font_xs, (255-21, 255-21, 255-21))
         # self.explorer()
         # self.refresh()
 
-
     @property
     def node(self):
         return self._node
-
 
     @node.setter
     def node(self, value):
@@ -148,11 +142,9 @@ class GUI(lib.GUI):
         except AttributeError:
             pass
 
-
     @property
     def display_size(self):
         return self._display_size
-
 
     @display_size.setter
     def display_size(self, value):
@@ -160,54 +152,43 @@ class GUI(lib.GUI):
         self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
         self.background()
 
-
     def right_panel(self):
         if not self.show_explorer:
             self.render_history()
         else:
             self.render_explorer()
 
-
     def background(self):
         self.screen.fill((21, 21, 21))
         self.blurred = False
         self.set_board()
 
-
     def blur(self):
         if not self.blurred:
             BS = self.SQUARE_SIZE * 8
-            pygame.gfxdraw.filled_polygon(
-                    self.screen,
-                    ((0, 0), (0, BS),
-                     (BS,BS), (BS, 0)),
-                    (255, 255, 255, 100)
-            )
+            pygame.gfxdraw.filled_polygon(self.screen,
+                                          ((0, 0), (0, BS), (BS, BS), (BS, 0)),
+                                          (255, 255, 255, 100))
             self.blurred = True
-
 
     @staticmethod
     def load_img(path):
         return pygame.image.load(str(path))
 
-
     def dark_mode(self):
         """Fills the screen with #151515 color"""
         self.screen.fill((21, 21, 21))
-
 
     # @staticmethod
     def refresh(self):
         pygame.display.update()
         last_refresh = time.time()
         with open("log", 'a+') as fout:
-            print(60/(last_refresh-self.last_refresh), "fps", file=fout)
+            print(60 / (last_refresh - self.last_refresh), "fps", file=fout)
         self.last_refresh = last_refresh
-
 
     def clear_variation(self):
         self.moves_popped = []
-
 
     def left_click(self, coords):
         """
@@ -227,7 +208,7 @@ class GUI(lib.GUI):
                 self.is_promoting = False
                 self.set_board()
                 return
-            idx = coords[0] if self.board.turn else 7-coords[0]
+            idx = coords[0] if self.board.turn else 7 - coords[0]
             end = 8 if self.board.turn else 1
             file = "abcdefgh"[idx]
             move = self.board.push_san(f"{file}{end}={choice}")
@@ -235,7 +216,6 @@ class GUI(lib.GUI):
             self.node = self.node.add_main_variation(move)
             self.is_promoting = False
             self.set_board()
-
 
     def release(self, button, coords):
         """
@@ -247,10 +227,12 @@ class GUI(lib.GUI):
         """
         print("Releasing mouse button")
         p_coords = self.receive_coords(*coords)
+        if button == 1:
+            self.set_board()
+
         if button == 3:
             self.draw_arrow(self.beg_click, p_coords)
             self.background()
-
 
     def mouse_over(self, coords):
         """
@@ -277,32 +259,37 @@ class GUI(lib.GUI):
             if piece is not None:
                 self.background()
                 self.draw_square(*self.beg_click)
-                self.screen.blit(self.piece_to_img[piece], (coords[0]-SQUARE_SIZE//2, coords[1]-SQUARE_SIZE//2))
+                self.screen.blit(self.piece_to_img[piece],
+                                 (coords[0] - SQUARE_SIZE // 2,
+                                  coords[1] - SQUARE_SIZE // 2))
 
         elif self.button_pressed[3]:
             self.background()
             self.draw_raw_arrow(self.beg_raw_click, coords)
 
-
     def create_game(self):
         """The callback for creating a game"""
         self.database.add()
-        self.game = len(self.database)-1
+        self.game = len(self.database) - 1
         self.node = self.database[self.game]
         self.background()
 
-
     def next_game(self):
         """The callback for switching to next game"""
-        self.node = self.database[self.game+1]
+        self.node = self.database[self.game + 1]
         self.game += 1
         self.background()
 
-
     def previous_game(self):
         """The callback for going to a previous game"""
-        self.node = self.database[self.game-1]
+        self.node = self.database[self.game - 1]
         self.game -= 1
+        self.background()
+
+    def load_pgn(self):
+        self.database.new_file()
+        self.node = self.database[0]
+        self.game = 0
         self.background()
 
 
@@ -326,22 +313,22 @@ class GUI(lib.GUI):
             dispatch_table = self.key_pressed_dispatch
         except AttributeError:
             self.key_pressed_dispatch = {
-                    276: self.move_back,       # right arrow key
-                    275: self.move_forward,    # left arrow key
-                    102: self.flip,            # f
-                    115: self.database.save,   # s
-                    -110: self.create_game,    # ctrl n
-                    110: self.next_game,       # n
-                    98: self.previous_game,    # b
-                    101: self.engine_callback, # e
-                    120: self.explorer,        # x
-                    113: self.exit             # q
+                276: self.move_back,        # left arrow key
+                275: self.move_forward,     # right arrow key
+                102: self.flip,             # f
+                115: self.database.save,    # s
+                -110: self.create_game,     # ctrl n
+                110: self.next_game,        # n
+                98: self.previous_game,     # b
+                101: self.engine_callback,  # e
+                111: self.load_pgn,         # o
+                120: self.explorer,         # x
+                113: self.exit              # q
             }
             dispatch_table = self.key_pressed_dispatch
 
         dispatch_table[key]()
         print("Called", key)
-
 
     def key_release(self, event):
         """
@@ -354,7 +341,6 @@ class GUI(lib.GUI):
         # if event.key == 101:
         #     self.clear_explorer()
 
-
     def exit(self):
         self.is_exiting = True
         self.stop_analysis()
@@ -364,10 +350,11 @@ class GUI(lib.GUI):
             pass
         sys.exit()
 
-
     def __call__(self):
         """The main event loop"""
+        clock = pygame.time.Clock()
         while 1:
+            clock.tick(144)
             try:
                 for event in pygame.event.get():
                     if event.type != 4:
@@ -399,8 +386,13 @@ class GUI(lib.GUI):
                         self.display_size = event.size
                     elif event.type == pygame.QUIT:
                         self.exit()
-            except (AssertionError, AttributeError, KeyError, IndexError, TypeError, ValueError) as e:
-                print(e)
+            except (AssertionError, AttributeError, KeyError, IndexError,
+                    TypeError, ValueError) as e:
+                print(type(e), e)
+            except Exception as e:
+                print("General", type(e), e)
+                traceback.print_tb(e.__traceback__)
+                self.exit()
             # self.render_raw_text("30%", (190, 570), self.font_xs, (255, 255, 255))
             self.refresh()
 
@@ -415,6 +407,7 @@ def main():
         except:
             pass
 
+
 if __name__ == "__main__":
     freeze_support()
     # Get pgn path
@@ -424,7 +417,7 @@ if __name__ == "__main__":
         else:
             raise IndexError
     except IndexError:
-        pgn_path = input("Please enter a pgn path\n")
+        # pgn_path = input("Please enter a pgn path\n")
+        pgn_path = ''
     engine_path = get_engine_path(pwd)
     main()
-

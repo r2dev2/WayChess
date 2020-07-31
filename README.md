@@ -2,7 +2,11 @@
 
 ![demo](img/demo/general_screen.png)
 
-## Usage
+## Installation
+
+There should be a Windows installer available, if you don't use Windows, install from scratch.
+
+### From Scratch
 
 ```
 git clone https://github.com/r2dev2bb8/WayChess.git
@@ -11,6 +15,26 @@ python3 -m pip install -r requirements.txt
 python3 installer.py
 python3 gui.py
 ```
+
+## Usage
+
+Keybindings:
+
+|    Key     |     Function     |
+| ---------- | ---------------- |
+| ``<-``     | Move back        |
+| ``->``     | Move forward     |
+| ``f``      | Flip board       |
+| ``s``      | Save database    |
+| ``ctrl+n`` | Create game      |
+| ``n``      | Next game        |
+| ``b``      | Previous game    |
+| ``e``      | Toggle engine    |
+| ``o``      | Load a pgn       |
+| ``x``      | Toggle explorer  |
+| ``q``      | Quit application |
+
+
 
 ## Goals
 

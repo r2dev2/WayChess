@@ -41,6 +41,7 @@ class AnalysisDisplay:
             san = ogboard.variation_san(board.move_stack)
             score = str(info.get("score"))
             score = score if ogboard.turn else flip_eval(score)
+            score = eval_to_str(score)
             
             self.queue.append(
                     f"{score} {info.get('depth')} {san}"
@@ -53,6 +54,20 @@ def flip_eval(ev):
     if '+' in ev:
         return ev.replace('+', '-')
     return ev.replace('-', '+')
+
+
+def eval_to_str(ev):
+    """Processes and returns the raw evaluation string"""
+    ev = str(ev)
+    try:
+        res = "%.2f" % (eval(ev)/100.)
+        return res if eval(res) < 0 else '+' + res
+    # Checkmate interpreter
+    except SyntaxError:
+        return ev
+    except Exception as e:
+        print("Failed due to", repr(e))
+        raise e
 
 
 def analysis(engine, display, board=chess.Board(), end=lambda:False):
@@ -121,7 +136,7 @@ class GUIAnalysis(AnalysisDisplay):
 
     def raw_display(self, i, info):
         sx, sy = 40, 595
-        for j, text in enumerate(wrap_iter(str(i) + ' ' + info)):
+        for j, text in enumerate(wrap_iter(str(i) + '. ' + info)):
             self.gui.render_raw_text(
                     text,
                     (sx, sy+i*50+j*20), self.gui.font_engine,
@@ -144,6 +159,7 @@ class GUI:
         gfx.filled_polygon(self.screen, GUI.engine_panel, (21, 21, 21))
 
     def set_analysis(self):
+        print("Set engine task")
         beg = time.time()
         if not hasattr(self, "engine"):
             print("Opening engine")
@@ -156,6 +172,7 @@ class GUI:
             # self.engine.configure({"MultiPV": 3})
         # _, self.engine = await chess.engine.popen_uci("Engines/stockfish_bmi2.exe")
         self.is_analysing = True
+        self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
         assert type(self.analysis_display) is GUIAnalysis
         def get_end():
@@ -172,8 +189,6 @@ class GUI:
         print("set analysis callback started in", time.time()-beg, "seconds")
 
     def stop_analysis_task(self):
-        self.is_analysing = False
-        self.show_engine = False
         try:
             beg = time.time()
             self.analysis_service.join()
@@ -182,10 +197,13 @@ class GUI:
             return
 
     def stop_analysis(self):
+        print("Stopping analysis")
+        self.is_analysing = False
+        self.show_engine = False
         try:
-            threading.Thread(self.stop_analysis_task).start()
+            threading.Thread(target=self.stop_analysis_task).start()
         except Exception as e:
-            print(e)
+            print(type(e), e)
 
     def engine_callback(self):
         # try:
@@ -195,16 +213,15 @@ class GUI:
         try:
             if not self.show_engine:
                 # print("gone down engine_callback")
-                self.show_engine = True
                 self.set_analysis()
             else:
-                # print("stopping analysis")
                 self.stop_analysis()
                 # print("show_engine changed to", self.show_engine)
         except AttributeError:
             self.show_engine = True
+            self.is_analysing = True
             self.set_analysis()
-    
+
 
 def main():
     engine = chess.engine.SimpleEngine.popen_uci("Engines/stockfish_bmi2.exe")

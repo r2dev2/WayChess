@@ -1,5 +1,8 @@
+import os
+
 import chess
 import chess.pgn
+from easygui import filesavebox, fileopenbox
 
 
 class Database:
@@ -20,8 +23,15 @@ class Database:
     def add(self, item=chess.pgn.Game()):
         self.games.append(item)
 
+
+    def new_file(self):
+        file = fileopenbox("Which file to open?", "WayChess", filetypes=("pgn",))
+        self.__init__(file)
+
     
     def save(self, file=None):
+        if not os.path.isfile(file):
+            self.file = filesavebox("Save to which file?", "WayChess", filetypes=("pgn",))
         if file is None:
             file = self.file
         with open(file, 'w+') as fout:

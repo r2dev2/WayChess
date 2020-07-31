@@ -55,7 +55,7 @@ class Explorer:
 
     panel = [
         (825, 75), (1180, 75),
-        (1180, 500), (825, 500)
+        (1180, 610), (825, 610)
     ]
 
     def __init__(self, fen=chess.Board().fen()):
@@ -113,15 +113,22 @@ class Explorer:
 class GUI:
     def explorer(self):
         if not self.explorer:
-            ex = Explorer(self.board.fen())
-            ex.render(self)
+            self.t_manager.submit(Thread(target=self.update_explorer_task))
         else:
             self.clear_explorer()
         self.explorer = not self.explorer
 
 
     def update_explorer_task(self):
-        ex = Explorer(self.board.fen())
+        cache = self.explorer_cache
+        fen = self.board.fen()
+        try:
+            ex = cache[fen]
+            print("Updating from cache")
+        except KeyError:
+            ex = Explorer(self.board.fen())
+            cache[fen] = ex
+        # ex = Explorer(self.board.fen())
         self._explorer = ex
         ex.render(self)
 

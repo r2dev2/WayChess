@@ -42,7 +42,11 @@ class GUI:
             board = self.board.copy()
             try:
                 move = board.push_uci(str(move))
-                self.node = self.node.add_main_variation(move)
+                if self.key_pressed[306]:
+                    self.node = self.node.add_main_variation(move)
+                else:
+                    self.node = self.node.add_variation(move)
+                # self.node = self.node.add_main_variation(move)
                 self.move += .5
             # Raises ValueError if the move is illegal
             except ValueError:
