@@ -39,6 +39,7 @@ class GUI:
     @staticmethod
     def __get_move_text_history(game, emphasis):
         beg = game.variations[0]
+        tabbed = False
         moves = []
         # nodes will be tuple of either 2 nodes or 1 node
         for counter, nodes in enumerate(
@@ -57,8 +58,11 @@ class GUI:
 
             # Add a space if the move is the current move
             if counter-1 == int(emphasis-.5):
-                s = ' ' + s
+                s = '\t' + s
+                tabbed = True
             moves.append(s)
+        if not tabbed:
+            moves[-1] = '\t' + moves[-1]
         return moves
             
 
@@ -105,7 +109,7 @@ class GUI:
         #     print("nothing")
         moves = moves[-15:]
         for move in moves:
-            if move.startswith(' '):
+            if move.startswith('\t'):
                 l = GUI.moves_panel[0][0]
                 r = GUI.moves_panel[1][0]
                 dy = -5
@@ -115,7 +119,7 @@ class GUI:
                 ]
                 gfx.filled_polygon(self.screen, rect, (0, 0, 0))
             self.render_text(move.lstrip(), (None, y), True, 
-                    (0, 0, 0) if move.startswith(' ') else (21, 21, 21))
+                    (0, 0, 0) if move.startswith('\t') else (21, 21, 21))
             y += 30
 
 

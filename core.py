@@ -30,10 +30,8 @@ class Database:
 
     
     def save(self, file=None):
-        if not os.path.isfile(file):
+        if file is None or not os.path.isfile(file):
             self.file = filesavebox("Save to which file?", "WayChess", filetypes=("pgn",))
-        if file is None:
-            file = self.file
         with open(file, 'w+') as fout:
             for game in self.games:
                 print(game, file=fout, end='\n\n')
