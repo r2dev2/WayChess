@@ -6,6 +6,7 @@ import re
 import sys
 import traceback
 import time
+from threading import Thread
 
 import chess
 import chess.engine
@@ -84,7 +85,7 @@ class GUI(lib.GUI):
         self.piece_at = dict()
         self.database = Database(pgn_path)
         self.game = 0
-        self._node = self.database[self.game]
+        self.node = self.database[self.game]
         self.move = 0
         self.key_pressed = {i: False for i in range(1000)}
         # self.arrows = dict()
@@ -101,6 +102,7 @@ class GUI(lib.GUI):
         self.explorer_cache = dict()
         self.engine_path = engine_path
         self.create_thread_manager()
+        self.create_fps_monitor()
 
         self._display_size = display_size
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
@@ -135,6 +137,8 @@ class GUI(lib.GUI):
     @node.setter
     def node(self, value):
         self._node = value
+        self.changed_hist = True
+        print("changed node")
         try:
             if self.is_analysing:
                 self.stop_analysis()
@@ -182,10 +186,9 @@ class GUI(lib.GUI):
     # @staticmethod
     def refresh(self):
         pygame.display.update()
-        last_refresh = time.time()
-        with open("log", 'a+') as fout:
-            print(60 / (last_refresh - self.last_refresh), "fps", file=fout)
-        self.last_refresh = last_refresh
+        # last_refresh = time.time()
+        self.fps_monitor.increment()
+        # self.last_refresh = last_refresh
 
     def clear_variation(self):
         self.moves_popped = []
@@ -217,16 +220,24 @@ class GUI(lib.GUI):
             self.is_promoting = False
             self.set_board()
 
-    def release(self, button, coords):
+    def release(self, event):
         """
         The mouse button release callback.
 
-        :param button: the mouse button released
-        :param coords: the raw coordinates of the release
+        :param event: the event
         :return: None
         """
-        print("Releasing mouse button")
+        button, coords = event.button, event.pos
+        self.button_pressed[event.button] = False
         p_coords = self.receive_coords(*coords)
+        if event.button == 1:
+            self.end_first = p_coords
+            if self.beg_first == self.end_first:
+                self.left_click(self.beg_first)
+            else:
+                self.draw_move(self.beg_first, self.end_first)
+            self.beg, self.end = None, None
+
         if button == 1:
             self.set_board()
 
@@ -234,7 +245,7 @@ class GUI(lib.GUI):
             self.draw_arrow(self.beg_click, p_coords)
             self.background()
 
-    def mouse_over(self, coords):
+    def mouse_over(self, event):
         """
         The mouse over callback.
 
@@ -242,10 +253,11 @@ class GUI(lib.GUI):
           * Highlights the square in promotion menu
           * Dragging pieces
 
-        :param coords: the raw coordinates of the click
+        :param event: the event
         :returns: None
         """
         SQUARE_SIZE = self.SQUARE_SIZE
+        coords = event.pos # raw coordinates
         p_coords = self.receive_coords(*coords)
         if self.is_promoting:
             try:
@@ -306,7 +318,7 @@ class GUI(lib.GUI):
         key = event.key
 
         # If ctrl is pressed, multiply key by -1
-        if any(self.key_pressed[i] for i in (305, 306)):
+        if self.key_pressed[305] or self.key_pressed[306]:
             key *= -1
 
         try:
@@ -327,8 +339,13 @@ class GUI(lib.GUI):
             }
             dispatch_table = self.key_pressed_dispatch
 
-        dispatch_table[key]()
+        try:
+            func = dispatch_table[key]
+        except KeyError:
+            return
+
         print("Called", key)
+        func()
 
     def key_release(self, event):
         """
@@ -341,7 +358,7 @@ class GUI(lib.GUI):
         # if event.key == 101:
         #     self.clear_explorer()
 
-    def exit(self):
+    def exit(self, *args, **kwargs):
         self.is_exiting = True
         self.stop_analysis()
         try:
@@ -350,45 +367,72 @@ class GUI(lib.GUI):
             pass
         sys.exit()
 
+    def click(self, event):
+        self.button_pressed[event.button] = True
+        received = self.receive_coords(*event.pos)
+        if event.button == 1:
+            self.beg_first = received
+        self.beg_click = received
+        self.beg_raw_click = event.pos
+
+    def resize_display(self, event):
+        self.display_size = event.size
+
+    def handle_event(self, e):
+        try:
+            dispatch = self.main_event_handler
+        except AttributeError:
+            dispatch = {
+                    2: self.key_press,
+                    3: self.key_release,
+                    4: self.mouse_over,
+                    5: self.click,
+                    6: self.release,
+                    16: self.resize_display,
+                    pygame.QUIT: self.exit
+            }
+            self.main_event_handler = dispatch
+
+        try:
+            func = dispatch[e.type]
+        except KeyError:
+            return
+        
+        func(e)
+
+
     def __call__(self):
         """The main event loop"""
         clock = pygame.time.Clock()
         while 1:
-            clock.tick(144)
+            # Higher than my refresh rate to allow for quicker processing
+            clock.tick(288)
             try:
                 for event in pygame.event.get():
                     if event.type != 4:
                         print(repr(event))
-                    if event.type == 2:
-                        self.key_press(event)
-                    elif event.type == 3:
-                        self.key_release(event)
-                    elif event.type == 4:
-                        self.mouse_over(event.pos)
-                    elif event.type == 5:
-                        self.button_pressed[event.button] = True
-                        if event.button == 1:
-                            beg = self.receive_coords(*event.pos)
-                        self.beg_click = self.receive_coords(*event.pos)
-                        self.beg_raw_click = event.pos
-                    elif event.type == 6:
-                        print("Going to call release")
-                        self.button_pressed[event.button] = False
-                        self.release(event.button, event.pos)
-                        if event.button == 1:
-                            end = self.receive_coords(*event.pos)
-                            if beg == end:
-                                self.left_click(beg)
-                            else:
-                                self.draw_move(beg, end)
-                        beg, end = None, None
-                    elif event.type == 16:
-                        self.display_size = event.size
-                    elif event.type == pygame.QUIT:
-                        self.exit()
+                    self.handle_event(event)
+                    # self.t_manager.submit(
+                    #         Thread(target=self.handle_event, args=(event,))
+                    # )
+                    # if event.type == 2:
+                    #     self.key_press(event)
+                    # elif event.type == 3:
+                    #     self.key_release(event)
+                    # elif event.type == 4:
+                    #     self.mouse_over(event)
+                    # elif event.type == 5:
+                    #     self.click(event)
+                    # elif event.type == 6:
+                    #     self.release(event)
+                    # elif event.type == 16:
+                    #     self.resize_display(event)
+                    # elif event.type == pygame.QUIT:
+                    #     self.exit()
             except (AssertionError, AttributeError, KeyError, IndexError,
                     TypeError, ValueError) as e:
                 print(type(e), e)
+                traceback.print_tb(e.__traceback__)
             except Exception as e:
                 print("General", type(e), e)
                 traceback.print_tb(e.__traceback__)
@@ -401,7 +445,9 @@ def main():
     try:
         gui = GUI(img)
         gui()
-    except:
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        print(type(e), e)
         try:
             gui.engine.quit()
         except:

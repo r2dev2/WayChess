@@ -27,6 +27,7 @@ class GCService(Thread):
 
     def submit(self, thread):
         thread.start()
+        print("started thread")
         self.threads.append(thread)
 
     

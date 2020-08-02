@@ -1,5 +1,7 @@
 import itertools
 import re
+import time
+from threading import Thread
 
 import chess
 import pygame.gfxdraw as gfx
@@ -41,33 +43,69 @@ class GUI:
         beg = game.variations[0]
         tabbed = False
         moves = []
+        ib = time.time()
         # nodes will be tuple of either 2 nodes or 1 node
+        any_l, len_l, int_l = any, len, int
         for counter, nodes in enumerate(
                 map(tuple, grouper_it(2, GUI.__board_node_generator(beg))), 
                 1):
 
+            # s = ""
+            b = time.time()
             try:
-                s = f"{counter}. {nodes[0].san():5} {nodes[1].san():5}"
+                bb = time.time()
+                n0s = nodes[0].parent.board().san(nodes[0].move)
+                n1s = nodes[1].parent.board().san(nodes[1].move)
+                s = f"{counter}. {n0s} {n1s}"
             # If nodes has 1 element
             except IndexError:
-                s = f"{counter}. {nodes[0].san():5}"
+                s = f"{counter}. {n0s}"
+
+            # s = ""
+            f1 = time.time()
+
+            # bb = time.time()
+            # nodes[0].san()
+            # print(time.time()-bb, "to get node san")
 
             # Add a * if there are multiple variations
-            if any(len(n.variations) > 1 for n in nodes):
+            if any_l(len_l(n.variations) > 1 for n in nodes):
                 s = '*' + s
 
+            f2 = time.time()
+
             # Add a space if the move is the current move
-            if counter-1 == int(emphasis-.5):
+            if counter-1 == int_l(emphasis-.5):
                 s = '\t' + s
                 tabbed = True
+
+            f3 = time.time()
             moves.append(s)
+            f = time.time()
+            # print("movehist iteration takes", f1-b, f2-f1, f3-f2, f-f3, f-b)
+        fi = time.time()
         if not tabbed:
             moves[-1] = '\t' + moves[-1]
         return moves
             
 
-
     def render_history(self):
+        """
+        Renders the history with autoscroll.
+
+        To implement:
+          * Move comments
+          * Move marks eg. ! ?
+        """
+        if self.changed_hist:
+            self.move_hist = self.render_history_task()
+            self.changed_hist = False
+        else:
+            self.render_history_task(self.move_hist)
+
+
+
+    def render_history_task(self, moves=None):
         """
         Renders the history with autoscroll.
 
@@ -84,7 +122,8 @@ class GUI:
         gfx.filled_polygon(self.screen, GUI.moves_panel, (21, 21, 21))
         game = self.node.game()
         try:
-            moves = self.__get_move_text_history(game, self.move)
+            if moves is None:
+                moves = self.__get_move_text_history(game, self.move)
         except IndexError:
             moves = []
         except Exception as e:
@@ -121,6 +160,7 @@ class GUI:
             self.render_text(move.lstrip(), (None, y), True, 
                     (0, 0, 0) if move.startswith('\t') else (21, 21, 21))
             y += 30
+        return moves
 
 
     def render_text(self, text, pos = (None, 20), small=False, background=(21, 21, 21)):

@@ -1,5 +1,7 @@
 import math
 import re
+import sys
+import time
 
 import pygame
 import pygame.gfxdraw 
@@ -83,6 +85,14 @@ class Arrow:
 
 class GUI:
     @property
+    def is_mac(self):
+        try:
+            return self.__is_mac
+        except AttributeError:
+            self.__is_mac = sys.platform == "darwin"
+            return self.__is_mac
+
+    @property
     def arrows(self):
         return Arrow.set_from_str(self.node.comment)
 
@@ -90,14 +100,14 @@ class GUI:
     @property
     def move_arrow_color(self):
         if self.board.turn:
-            return (0, 0, 0, 100)
-        return (255, 255, 255, 100)
+            return (0, 0, 0, 100)[: 3 if self.is_mac else 4]
+        return (255, 255, 255, 100)[: 3 if self.is_mac else 4]
 
     @property
     def arrow_color(self):
         if self.key_pressed[306]:
-            return (0, 255, 0, 150)
-        return (255, 143, 0, 150)
+            return (0, 255, 0, 150)[: 3 if self.is_mac else 4]
+        return (255, 143, 0, 150)[: 3 if self.is_mac else 4]
 
 
     def write_arrows(self, arrows):
@@ -157,15 +167,21 @@ class GUI:
     def set_arrows(self, drawing=False):
         """Render all arrows"""
         # print(self.arrows)
+        b = time.time()
         SQUARE_SIZE = self.SQUARE_SIZE
-        for arrow in self.arrows:
+        arrows = self.arrows
+        f1 = time.time()
+        for arrow in arrows:
             start = arrow.beg
             end = arrow.end
             s = tuple(i+SQUARE_SIZE//2 for i in self.get_coords(*start))
             e = tuple(i+SQUARE_SIZE//2 for i in self.get_coords(*end))
             self.draw_raw_arrow(s, e, arrow.color)
+        f2 = time.time()
         if self.move_arrow is not None:
             self.draw_raw_arrow(*self.move_arrow, self.move_arrow_color)
+        f3 = time.time()
         if not drawing:
             self.update_explorer()
+        f = time.time()
 

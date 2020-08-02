@@ -1,3 +1,5 @@
+import time
+
 class GUI:
     """Board and coordinate gui backend"""
     @property
@@ -34,10 +36,11 @@ class GUI:
         self.piece_at = dict()
         self.is_promoting = False
         piece_map = self.board.piece_map()
+        to_square, draw_piece = self.to_square, self.draw_piece
         for i, p in piece_map.items():
-            rank, file = self.to_square(i)
+            rank, file = to_square(i)
             piece = p.symbol()
-            self.draw_piece(piece, (rank, file))
+            draw_piece(piece, (rank, file))
         self.right_panel()
         self.set_arrows()
         # print("[COMMENT]", self.node.comment)
