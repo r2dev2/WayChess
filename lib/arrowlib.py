@@ -4,16 +4,16 @@ import sys
 import time
 
 import pygame
-import pygame.gfxdraw 
+import pygame.gfxdraw
 
 
 def get_line_points(sx, sy, ex, ey, thickness):
     cos = math.cos
     sin = math.sin
     try:
-        slope = (ey-sy)/(ex-sx)
-        theta = math.atan2(ey-sy, ex-sx)
-        p_theta = math.atan2(ex-sx, sy-ey)
+        (ey - sy) / (ex - sx)
+        theta = math.atan2(ey - sy, ex - sx)
+        p_theta = math.atan2(ex - sx, sy - ey)
         c = cos(p_theta)
         s = sin(p_theta)
         cr = cos(theta)
@@ -25,19 +25,26 @@ def get_line_points(sx, sy, ex, ey, thickness):
         cr = 0
 
     thickness /= 2
-    dx = thickness*c
-    dy = thickness*s
-    drx = thickness*cr
-    dry = thickness*sr
+    dx = thickness * c
+    dy = thickness * s
+    drx = thickness * cr
+    dry = thickness * sr
     oex = ex
     oey = ey
-    ex -= thickness*cr*2
-    ey -= thickness*sr*2
-    res =   (((int(sx+dx), int(sy+dy)), (int(sx-dx), int(sy-dy)),
-              (int(ex-dx), int(ey-dy)), # (int(ex-dx*2), int(ey+dy*2)),
-              (int(oex+drx*0), int(oey+dry*0)), # (int(ex+dx*2), int(ey+dy*2)),
-              (int(ex+dx), int(ey+dy))),
-              c, s)
+    ex -= thickness * cr * 2
+    ey -= thickness * sr * 2
+    res = (
+        (
+            (int(sx + dx), int(sy + dy)),
+            (int(sx - dx), int(sy - dy)),
+            (int(ex - dx), int(ey - dy)),  # (int(ex-dx*2), int(ey+dy*2)),
+            # (int(ex+dx*2), int(ey+dy*2)),
+            (int(oex + drx * 0), int(oey + dry * 0)),
+            (int(ex + dx), int(ey + dy)),
+        ),
+        c,
+        s,
+    )
     return res
 
 
@@ -65,8 +72,10 @@ class Arrow:
     @classmethod
     def set_from_str(cls, string):
         try:
-            l = re.findall(r"Arrow\([^a-z]+\)\)", re.findall("Arrows: (.+)", string)[-1])
-            return {cls.one_from_str(a) for a in l}
+            arrow_strs = re.findall(
+                r"Arrow\([^a-z]+\)\)", re.findall("Arrows: (.+)", string)[-1]
+            )
+            return {cls.one_from_str(a) for a in arrow_strs}
         except IndexError:
             return set()
 
@@ -96,7 +105,6 @@ class GUI:
     def arrows(self):
         return Arrow.set_from_str(self.node.comment)
 
-
     @property
     def move_arrow_color(self):
         if self.board.turn:
@@ -109,14 +117,14 @@ class GUI:
             return (0, 255, 0, 150)[: 3 if self.is_mac else 4]
         return (255, 143, 0, 150)[: 3 if self.is_mac else 4]
 
-
     def write_arrows(self, arrows):
         if "Arrows: " not in self.node.comment:
             start = len(self.node.comment)
         else:
             start = self.node.comment.rfind("Arrows: ")
-        self.node.comment = self.node.comment[:start] + "Arrows: " + ' '.join(map(str, arrows))
-
+        self.node.comment = (
+            self.node.comment[:start] + "Arrows: " + " ".join(map(str, arrows))
+        )
 
     def add_arrow(self, arrow):
         arrows = self.arrows
@@ -124,13 +132,11 @@ class GUI:
         arrows.add(arrow)
         self.write_arrows(arrows)
 
-
     def remove_arrow(self, arrow):
         arrows = self.arrows
         assert arrow in self.arrows, "Shouldn't be calling remove_arrow"
         arrows.remove(arrow)
         self.write_arrows(arrows)
-
 
     def draw_raw_arrow(self, start, end, color=None):
         """
@@ -144,7 +150,6 @@ class GUI:
             color = self.arrow_color
         arrow(self.screen, color, color, start, end, 20, 20)
 
-
     def draw_arrow(self, start, end):
         """
         Draw a permanent arrow from start to end
@@ -154,34 +159,32 @@ class GUI:
         :return: None
         """
         assert all(0 <= val <= 7 for val in [*start, *end])
-        a = Arrow(start, end, self.arrow_color) 
+        a = Arrow(start, end, self.arrow_color)
         if a in self.arrows:
-            print(a)
+            self.stdout(a)
             self.remove_arrow(a)
         else:
             self.add_arrow(a)
         # print(self.arrows[self.move])
         self.set_arrows(True)
 
-
     def set_arrows(self, drawing=False):
         """Render all arrows"""
         # print(self.arrows)
-        b = time.time()
+        time.time()
         SQUARE_SIZE = self.SQUARE_SIZE
         arrows = self.arrows
-        f1 = time.time()
+        time.time()
         for arrow in arrows:
             start = arrow.beg
             end = arrow.end
-            s = tuple(i+SQUARE_SIZE//2 for i in self.get_coords(*start))
-            e = tuple(i+SQUARE_SIZE//2 for i in self.get_coords(*end))
+            s = tuple(i + SQUARE_SIZE // 2 for i in self.get_coords(*start))
+            e = tuple(i + SQUARE_SIZE // 2 for i in self.get_coords(*end))
             self.draw_raw_arrow(s, e, arrow.color)
-        f2 = time.time()
+        time.time()
         if self.move_arrow is not None:
             self.draw_raw_arrow(*self.move_arrow, self.move_arrow_color)
-        f3 = time.time()
+        time.time()
         if not drawing:
             self.update_explorer()
-        f = time.time()
-
+        time.time()

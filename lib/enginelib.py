@@ -1,10 +1,10 @@
-import time
 import threading
-import os
+import time
 
 import chess
 import chess.engine
 import pygame.gfxdraw as gfx
+
 
 class AnalysisDisplay:
     def __init__(self):
@@ -12,7 +12,7 @@ class AnalysisDisplay:
 
     def raw_display(self, i, info):
         print("og analysis")
-        print(i, info, '\n')
+        print(i, info, "\n")
 
     def pre_display(self):
         pass
@@ -26,9 +26,8 @@ class AnalysisDisplay:
                 self.queue.pop(0)
             self.post_display()
 
-
     def post_display(self):
-        print('\n')
+        print("\n")
 
     def clear(self):
         self.queue[:] = []
@@ -42,26 +41,24 @@ class AnalysisDisplay:
             score = str(info.get("score"))
             score = score if ogboard.turn else flip_eval(score)
             score = eval_to_str(score)
-            
-            self.queue.append(
-                    f"{score} {info.get('depth')} {san}"
-            )
+
+            self.queue.append(f"{score} {info.get('depth')} {san}")
             self.print()
 
 
 def flip_eval(ev):
     """Flips the evaluation from + to - and - to +"""
-    if '+' in ev:
-        return ev.replace('+', '-')
-    return ev.replace('-', '+')
+    if "+" in ev:
+        return ev.replace("+", "-")
+    return ev.replace("-", "+")
 
 
 def eval_to_str(ev):
     """Processes and returns the raw evaluation string"""
     ev = str(ev)
     try:
-        res = "%.2f" % (eval(ev)/100.)
-        return res if eval(res) < 0 else '+' + res
+        res = "%.2f" % (eval(ev) / 100.0)
+        return res if eval(res) < 0 else "+" + res
     # Checkmate interpreter
     except SyntaxError:
         return ev
@@ -70,10 +67,10 @@ def eval_to_str(ev):
         raise e
 
 
-def analysis(engine, display, board=chess.Board(), end=lambda:False):
+def analysis(engine, display, board=chess.Board(), end=lambda: False):
     """
     Syncronous analysis for use in a threading.Thread
-                                                                        
+
     :param engine: the awaited chess.engine.popen_uci engine
     :param display: the display queue for analysis
     :param board: the chess.Board() of the position
@@ -86,41 +83,17 @@ def analysis(engine, display, board=chess.Board(), end=lambda:False):
 
                 if end():
                     return
-    except:
+    except BaseException:
         return
 
 
-# async def analysis(engine, display, board=lambda: chess.Board(), end = lambda : False):
-#     """
-#     Asyncronous analysis
-# 
-#     :param engine: the awaited chess.engine.popen_uci engine
-#     :param display: the display queue for analysis
-#     :param board: the function to get the chess.Board() of the position
-#     :param end: the function telling whether to stop analysis
-#     """
-#     # transport, engine = await chess.engine.popen_uci("Engines/stockfish_bmi2.exe")
-# 
-#     og = board()
-# 
-#     with await engine.analysis(og, multipv=3) as analysis:
-#         async for info in analysis:
-#             b = board()
-#             if b != og:
-#                 await analysis(engine, display, board, end)
-#             await display.add(info, chess.Board(b.fen()))
-# 
-#             if end():
-#                 break
-
 def wrap_iter(string, length=150):
-    # yield string[:length]
-    for i in range(len(string)//length+1):
-        yield string[length*i: length*(i+1)]
+    for i in range(len(string) // length + 1):
+        yield string[length*i: length * (i+1)]
 
 
 def wrap(string, length=150):
-    return '\n'.join(wrap_iter(string, length))
+    return "\n".join(wrap_iter(string, length))
 
 
 class GUIAnalysis(AnalysisDisplay):
@@ -128,21 +101,19 @@ class GUIAnalysis(AnalysisDisplay):
         self.queue = []
         self.gui = gui
 
-
     def pre_display(self):
         # self.gui.clear_analysis()
         pass
 
-
     def raw_display(self, i, info):
         sx, sy = 40, 595
-        for j, text in enumerate(wrap_iter(str(i) + '. ' + info)):
+        for j, text in enumerate(wrap_iter(str(i) + ". " + info)):
             self.gui.render_raw_text(
-                    text,
-                    (sx, sy+i*50+j*20), self.gui.font_engine,
-                    (234, 234, 234)
+                text,
+                (sx, sy + i * 50 + j * 20),
+                self.gui.font_engine,
+                (234, 234, 234),
             )
-
 
     def post_display(self):
         pass
@@ -150,66 +121,70 @@ class GUIAnalysis(AnalysisDisplay):
 
 
 class GUI:
-    engine_panel = [
-            (35, 590), (515, 590),
-            (515, 755), (35, 755)
-    ]
+    engine_panel = [(35, 590), (515, 590), (515, 755), (35, 755)]
 
     def clear_analysis(self):
         gfx.filled_polygon(self.screen, GUI.engine_panel, (21, 21, 21))
 
     def set_analysis(self):
-        print("Set engine task")
+        self.stdout("Set engine task")
         beg = time.time()
         if not hasattr(self, "engine"):
-            print("Opening engine")
+            self.stdout("Opening engine")
             try:
-                self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
+                self.engine = chess.engine.SimpleEngine.popen_uci(
+                    self.engine_path
+                )
             except Exception as e:
-                print(self.engine_path)
-                print("Failed due to", e)
+                self.stdout(self.engine_path)
+                self.stdout("Failed due to", e)
                 self.exit()
             # self.engine.configure({"MultiPV": 3})
-        # _, self.engine = await chess.engine.popen_uci("Engines/stockfish_bmi2.exe")
+        # _, self.engine = await
+        # chess.engine.popen_uci("Engines/stockfish_bmi2.exe")
         self.is_analysing = True
         self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
         assert type(self.analysis_display) is GUIAnalysis
+
         def get_end():
             nonlocal self
             return not self.is_analysing
+
         # self.analysis_service = threading.Thread(target=analysis,
         self.t_manager.submit(
-                threading.Thread(target=analysis,
-                args = (self.engine, self.analysis_display, self.board, get_end),
-                daemon=True
+            threading.Thread(
+                target=analysis,
+                args=(self.engine, self.analysis_display, self.board, get_end),
+                daemon=True,
             )
         )
         # self.analysis_service.start()
-        print("set analysis callback started in", time.time()-beg, "seconds")
+        self.stdout("set analysis callback started in",
+                    time.time() - beg, "seconds")
 
     def stop_analysis_task(self):
         try:
             beg = time.time()
             self.analysis_service.join()
-            print(time.time()-beg, "seconds taken to stop analysis")
+            self.stdout(time.time() - beg, "seconds taken to stop analysis")
         except AttributeError:
             return
 
     def stop_analysis(self):
-        print("Stopping analysis")
+        self.stdout("Stopping analysis")
         self.is_analysing = False
         self.show_engine = False
         try:
             threading.Thread(target=self.stop_analysis_task).start()
         except Exception as e:
-            print(type(e), e)
+            self.stdout(type(e), e)
 
     def engine_callback(self):
         # try:
-            # print("calling engine callback", self.show_engine)
+        # print("calling engine callback", self.show_engine)
         # except AttributeError:
-            # print("calling engine callback", "undefined")
+        # print("calling engine callback", "undefined")
         try:
             if not self.show_engine:
                 # print("gone down engine_callback")
@@ -231,4 +206,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

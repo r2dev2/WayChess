@@ -3,6 +3,7 @@ import chess
 
 class GUI:
     """The backend for making moves for the gui"""
+
     def draw_piece(self, piece, position):
         """
         Displays the piece at the position
@@ -19,7 +20,6 @@ class GUI:
         assert all(0 <= val <= 7 for val in position), str(position)
         self.piece_at[position] = piece
 
-
     def draw_move(self, beg, end):
         """
         Draws the move on the board.
@@ -30,10 +30,10 @@ class GUI:
         """
         piece = self.piece_at.get(beg, None)
         assert piece is not None, f"{self.piece_at} doesn't have\n\n{beg}"
-        if \
-                piece in 'pP' \
-                and ((end[1] == 0 and self.board.turn) \
-                or (end[1] == 7 and not self.board.turn)):
+        if piece in "pP" and (
+            (end[1] == 0 and self.board.turn)
+            or (end[1] == 7 and not self.board.turn)
+        ):
             self.is_promoting = True
             self.set_arrows()
             self.draw_promote_menu(end)
@@ -47,7 +47,7 @@ class GUI:
                 else:
                     self.node = self.node.add_variation(move)
                 # self.node = self.node.add_main_variation(move)
-                self.move += .5
+                self.move += 0.5
             # Raises ValueError if the move is illegal
             except ValueError:
                 self.background()
@@ -60,7 +60,6 @@ class GUI:
             # self.set_board()
             # self.clear_variation()
 
-
     def draw_promote_menu(self, coords, in_focus=None):
         """
         Draws/updates the promote menu
@@ -72,7 +71,7 @@ class GUI:
         if self.board.turn:
             pieces = pieces.upper()
 
-        og_coords = coords[0], coords[1]
+        coords[0], coords[1]
         self.promo_coords = []
 
         self.blur()
@@ -90,8 +89,6 @@ class GUI:
             else:
                 coords = (coords[0], coords[1] - 1)
 
-
-
     def move_back(self):
         """Goes back one half move in history"""
         try:
@@ -101,9 +98,8 @@ class GUI:
         if node is None:
             return
         self.node = node
-        self.move -= .5
+        self.move -= 0.5
         self.set_board()
-
 
     def move_forward(self):
         """Goes forward one half move in history"""
@@ -111,6 +107,5 @@ class GUI:
             self.node = self.node.variations[0]
         except IndexError:
             return
-        self.move += .5
+        self.move += 0.5
         self.set_board()
-

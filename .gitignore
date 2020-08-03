@@ -6,6 +6,8 @@ engines/
 *.spec
 build/
 dist/
+*.build
+*.dist
 installers/
 playground/
 *.swp

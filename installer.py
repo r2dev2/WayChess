@@ -10,30 +10,28 @@ from threading import Thread
 import cpuinfo
 import requests
 
-
 STOCKFISH_DOWNLOAD = {
     "win32": "https://stockfishchess.org/files/stockfish-11-win.zip",
     "linux": "https://stockfishchess.org/files/stockfish-11-linux.zip",
     "linux32": "https://stockfishchess.org/files/stockfish-11-linux.zip",
-    "darwin": "https://stockfishchess.org/files/stockfish-11-mac.zip"
+    "darwin": "https://stockfishchess.org/files/stockfish-11-mac.zip",
 }
 
 STOCKFISH_LOCATION = {
-    "win32": r"stockfish\stockfish-11-win\Windows\stockfish_20011801_x64{}.exe",
-    "linux": "stockfish/stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
-    "linux32": "stockfish/stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
-    "darwin": "stockfish/stockfish-11-mac/Mac/stockfish-11-{}"
+    "win32": r"stockfish-11-win\Windows\stockfish_20011801_x64{}.exe",
+    "linux": "stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
+    "linux32": "stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
+    "darwin": "stockfish-11-mac/Mac/stockfish-11-{}",
 }
 
 
 # working directory will be ~/.waychess
-pwd = Path.home() / ".waychess" 
+pwd = Path.home() / ".waychess"
 
 
 def unzip(filepath: str, resultpath: str) -> None:
-    with zipfile.ZipFile(filepath, 'r') as zip_ref:
+    with zipfile.ZipFile(filepath, "r") as zip_ref:
         zip_ref.extractall(resultpath)
-
 
 
 # I know this is camel case, pls don't crucify me
@@ -41,22 +39,26 @@ def downloadStockfish() -> None:
     link = STOCKFISH_DOWNLOAD[sys.platform]
     print("Installing stockfish from", link)
     call(["curl", "-o", "stockfish.zip", link])
-    unzip("stockfish.zip", pwd / "engines"/ "stockfish")
+    unzip("stockfish.zip", pwd / "engines" / "stockfish")
     os.remove("stockfish.zip")
     stockfishexecutable = str(findStockfish())
     if sys.platform != "win32":
         os.chmod(stockfishexecutable, stat.S_IEXEC)
 
 
-
 def findStockfish() -> Path:
     toadd = "_bmi2" if sys.platform != "darwin" else "bmi2"
     info = cpuinfo.get_cpu_info()["brand"]
-    if '-2' in info:
-        toadd = ''
-    if '-3' in info:
+    if "-2" in info:
+        toadd = ""
+    if "-3" in info:
         toadd = "_modern" if sys.platform != "darwin" else "modern"
-    return pwd / "engines" / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
+    return (
+        pwd
+        / "engines"
+        / "stockfish"
+        / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
+    )
 
 
 def create_dir(path):
@@ -67,10 +69,12 @@ def create_dir(path):
 
 
 def img_download_task(pwd, img):
-    with open(pwd / img["path"], 'wb+') as fout:
-        url = img["html_url"] \
-                .replace("github", "raw.githubusercontent") \
-                .replace("blob/", '')
+    with open(pwd / img["path"], "wb+") as fout:
+        url = (
+            img["html_url"]
+            .replace("github", "raw.githubusercontent")
+            .replace("blob/", "")
+        )
         print("Saving", url, "to", img["path"], flush=True)
         fout.write(requests.get(url).content)
 
@@ -94,10 +98,9 @@ def download_img():
 
     for thread in download_threads:
         thread.start()
-    
+
     for thread in download_threads:
         thread.join()
-
 
 
 if __name__ == "__main__":
@@ -111,4 +114,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
         input("Enter to continue (Failed installation)")
-
