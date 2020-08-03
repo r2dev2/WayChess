@@ -123,7 +123,7 @@ class GUI:
         elif 8 <= int(self.move) < move_amount - 8:
             b = int(self.move - 0.5) - 8
             b = 0 if b < 0 else b
-            moves = moves[b: int(self.move-0.5) + 8]
+            moves = moves[b : int(self.move - 0.5) + 8]
         elif int(self.move) < 8:
             moves = moves[:15]
 
@@ -137,10 +137,10 @@ class GUI:
                 # dy of -5 is needed to align the highlight
                 dy = -5
                 rect = [
-                    (b_left,  y + dy),
+                    (b_left, y + dy),
                     (b_right, y + dy),
                     (b_right, y + dy + 30),
-                    (b_left,  y + dy + 30),
+                    (b_left, y + dy + 30),
                 ]
                 gfx.filled_polygon(self.screen, rect, (0, 0, 0))
             self.render_text(
@@ -161,7 +161,10 @@ class GUI:
         if pos[0] is None:
             right_boundary = self.display_size[1]
             text_len = len(text)
-            left = left_boundary + (right_boundary-left_boundary-text_len) // 2
+            left = (
+                left_boundary
+                + (right_boundary - left_boundary - text_len) // 2
+            )
             pos = (left, pos[1])
         font = self.font_small if small else self.font
         rendered = font.render(text, True, (255, 255, 255), background)

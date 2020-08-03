@@ -5,6 +5,7 @@ import time
 import traceback
 from multiprocessing import freeze_support
 from pathlib import Path
+from threading import Thread
 
 import cpuinfo
 import pygame
@@ -93,7 +94,6 @@ class GUI(lib.GUI):
         self.node = self.database[self.game]
         self.move = 0
         self.key_pressed = {i: False for i in range(1000)}
-        # self.arrows = dict()
         self.button_pressed = {1: False, 2: False, 3: False}
         self.beg_click = (0, 0)
         self.is_promoting = False
@@ -317,11 +317,17 @@ class GUI(lib.GUI):
         self.game -= 1
         self.background()
 
-    def load_pgn(self):
+    def load_pgn_task(self):
         self.database.new_file()
         self.node = self.database[0]
         self.game = 0
         self.background()
+
+    def load_pgn(self):
+        self.t_manager.submit(Thread(target=self.load_pgn_task))
+
+    def save_pgn(self):
+        self.t_manager.submit(Thread(target=self.database.save))
 
     def key_press(self, event):
         """
@@ -346,7 +352,7 @@ class GUI(lib.GUI):
                 276: self.move_back,  # left arrow key
                 275: self.move_forward,  # right arrow key
                 102: self.flip,  # f
-                115: self.database.save,  # s
+                115: self.save_pgn,  # s
                 -110: self.create_game,  # ctrl n
                 110: self.next_game,  # n
                 98: self.previous_game,  # b

@@ -29,10 +29,15 @@ class Database:
         self.__init__(fil)
 
     def save(self, file=None):
-        if file is None or not os.path.isfile(file):
-            self.file = filesavebox(
+        isfile = os.path.isfile
+
+        if (self.file is None and file is None) or (
+            not isfile(file) and not isfile(self.file)
+        ):
+            file = filesavebox(
                 "Save to which file?", "WayChess", filetypes=("pgn",)
             )
+            self.file = file
         with open(file, "w+") as fout:
             for game in self.games:
                 print(game, file=fout, end="\n\n")
@@ -45,35 +50,3 @@ class Database:
 
     def __getitem__(self, item):
         return self.games[item]
-
-
-# class VariationBoard(chess.Board):
-#     def __init__(self, *args):
-#         super().__init__(*args)
-#         self.branches = dict()
-#
-#     def copy(self):
-#         copy = super().copy()
-#         copy.branches = {k: i for k, i in self.branches.items()}
-#         return copy
-#
-#     def push_variation(self, uci: str):
-#         l = len(self.move_stack) - 2
-#         b = self.copy()
-#         b.pop()
-#         res = b.push_uci(uci)
-#         try:
-#             self.branches[l].append(b)
-#         except KeyError:
-#             self.branches[l] = [self.copy(), b]
-#         return res
-#
-#     def __getitem__(self, item):
-#         try:
-#             return self.branches[item]
-#         except KeyError:
-#             b = self.copy()
-#             while len(b.move_stack) > item:
-#                 b.pop()
-#             return [b]
-#

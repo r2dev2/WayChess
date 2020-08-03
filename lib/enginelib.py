@@ -89,7 +89,7 @@ def analysis(engine, display, board=chess.Board(), end=lambda: False):
 
 def wrap_iter(string, length=150):
     for i in range(len(string) // length + 1):
-        yield string[length*i: length * (i+1)]
+        yield string[length * i : length * (i + 1)]
 
 
 def wrap(string, length=150):
@@ -160,8 +160,9 @@ class GUI:
             )
         )
         # self.analysis_service.start()
-        self.stdout("set analysis callback started in",
-                    time.time() - beg, "seconds")
+        self.stdout(
+            "set analysis callback started in", time.time() - beg, "seconds"
+        )
 
     def stop_analysis_task(self):
         try:
