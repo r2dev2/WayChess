@@ -6,7 +6,7 @@ from easygui import fileopenbox, filesavebox
 
 
 class Database:
-    def __init__(self, file):
+    def __init__(self, file=""):
         self.file = file
         self.games = []
         try:
@@ -23,9 +23,7 @@ class Database:
         self.games.append(item)
 
     def new_file(self):
-        fil = fileopenbox(
-            "Which file to open?", "WayChess", filetypes=("pgn",)
-        )
+        fil = fileopenbox("Which file to open?", "WayChess", filetypes=("pgn",))
         self.__init__(fil)
 
     def save(self, file=None):
@@ -34,9 +32,7 @@ class Database:
         if (self.file is None and file is None) or (
             not isfile(file) and not isfile(self.file)
         ):
-            file = filesavebox(
-                "Save to which file?", "WayChess", filetypes=("pgn",)
-            )
+            file = filesavebox("Save to which file?", "WayChess", filetypes=("pgn",))
             self.file = file
         with open(file, "w+") as fout:
             for game in self.games:

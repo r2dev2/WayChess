@@ -67,7 +67,10 @@ class Arrow:
     @classmethod
     def one_from_str(cls, string):
         matches = re.findall(r"\([^\(\)]+\)", string[6:-1])
-        return cls(*map(eval, matches))
+        try:
+            return cls(*map(eval, matches))
+        except:
+            return None
 
     @classmethod
     def set_from_str(cls, string):
@@ -96,10 +99,10 @@ class GUI:
     @property
     def is_mac(self):
         try:
-            return self.__is_mac
+            return self._is_mac
         except AttributeError:
-            self.__is_mac = sys.platform == "darwin"
-            return self.__is_mac
+            self._is_mac = sys.platform == "darwin"
+            return self._is_mac
 
     @property
     def arrows(self):

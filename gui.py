@@ -37,10 +37,7 @@ def get_engine_path(pwd):
     if "-3" in info:
         toadd = "_modern" if sys.platform != "darwin" else "modern"
     return (
-        pwd
-        / "engines"
-        / "stockfish"
-        / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
+        pwd / "engines" / "stockfish" / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
     )
 
 
@@ -112,12 +109,8 @@ class GUI(lib.GUI):
         self._display_size = display_size
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
         self.font = pygame.font.Font(pygame.font.match_font("calibri"), 32)
-        self.font_small = pygame.font.Font(
-            pygame.font.match_font("calibri"), 24
-        )
-        self.font_engine = pygame.font.Font(
-            pygame.font.match_font("calibri"), 18
-        )
+        self.font_small = pygame.font.Font(pygame.font.match_font("calibri"), 24)
+        self.font_engine = pygame.font.Font(pygame.font.match_font("calibri"), 18)
         self.font_xs = pygame.font.Font(pygame.font.match_font("calibri"), 12)
         self.last_refresh = time.time()
 
@@ -187,9 +180,7 @@ class GUI(lib.GUI):
         if not self.blurred:
             BS = self.SQUARE_SIZE * 8
             pygame.gfxdraw.filled_polygon(
-                self.screen,
-                ((0, 0), (0, BS), (BS, BS), (BS, 0)),
-                (255, 255, 255, 100),
+                self.screen, ((0, 0), (0, BS), (BS, BS), (BS, 0)), (255, 255, 255, 100),
             )
             self.blurred = True
 
@@ -288,10 +279,7 @@ class GUI(lib.GUI):
                 self.draw_square(*self.beg_click)
                 self.screen.blit(
                     self.piece_to_img[piece],
-                    (
-                        coords[0] - SQUARE_SIZE // 2,
-                        coords[1] - SQUARE_SIZE // 2,
-                    ),
+                    (coords[0] - SQUARE_SIZE // 2, coords[1] - SQUARE_SIZE // 2,),
                 )
 
         elif self.button_pressed[3]:

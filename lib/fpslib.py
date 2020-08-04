@@ -17,10 +17,7 @@ class FPSMonitor(Thread):
         with open(self.filename, "w+") as fout:
             while not time.sleep(self.interval):
                 print(
-                    self.refreshes // self.interval,
-                    "fps",
-                    file=fout,
-                    flush=True,
+                    self.refreshes // self.interval, "fps", file=fout, flush=True,
                 )
                 self.refreshes = 0
 

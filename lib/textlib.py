@@ -44,10 +44,7 @@ class GUI:
             map(tuple, grouper_it(2, GUI.__board_node_generator(beg))), 1
         ):
 
-            # s = ""
-            time.time()
             try:
-                time.time()
                 n0s = nodes[0].parent.board().san(nodes[0].move)
                 n1s = nodes[1].parent.board().san(nodes[1].move)
                 s = f"{counter}. {n0s} {n1s}"
@@ -55,29 +52,17 @@ class GUI:
             except IndexError:
                 s = f"{counter}. {n0s}"
 
-            # s = ""
-            time.time()
-
-            # bb = time.time()
-            # nodes[0].san()
-            # print(time.time()-bb, "to get node san")
-
             # Add a * if there are multiple variations
             if any_l(len_l(n.variations) > 1 for n in nodes):
                 s = "*" + s
 
-            time.time()
 
             # Add a space if the move is the current move
             if counter - 1 == int_l(emphasis - 0.5):
                 s = "\t" + s
                 tabbed = True
 
-            time.time()
             moves.append(s)
-            time.time()
-            # print("movehist iteration takes", f1-b, f2-f1, f3-f2, f-f3, f-b)
-        time.time()
         if not tabbed:
             moves[-1] = "\t" + moves[-1]
         return moves
@@ -104,7 +89,6 @@ class GUI:
           * Move comments
           * Move marks eg. ! ?
         """
-        self.node
         gfx.filled_polygon(self.screen, GUI.moves_panel, (21, 21, 21))
         game = self.node.game()
 
@@ -152,19 +136,14 @@ class GUI:
             y += 30
         return moves
 
-    def render_text(
-        self, text, pos=(None, 20), small=False, background=(21, 21, 21)
-    ):
+    def render_text(self, text, pos=(None, 20), small=False, background=(21, 21, 21)):
         """Renders text, centered by default"""
         SQUARE_SIZE = self.SQUARE_SIZE
         left_boundary = SQUARE_SIZE * 9
         if pos[0] is None:
             right_boundary = self.display_size[1]
             text_len = len(text)
-            left = (
-                left_boundary
-                + (right_boundary - left_boundary - text_len) // 2
-            )
+            left = left_boundary + (right_boundary - left_boundary - text_len) // 2
             pos = (left, pos[1])
         font = self.font_small if small else self.font
         rendered = font.render(text, True, (255, 255, 255), background)

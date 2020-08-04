@@ -33,7 +33,7 @@ class GCService(Thread):
             i = 0
             while i < len(self.threads):
                 if not self.threads[i].is_alive():
-                    self.threads.pop(i)
+                    del self.threads[i]
                     gc.collect()
                     # continue doesn't work
                     i = len(self.threads) + 1

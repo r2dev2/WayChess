@@ -23,9 +23,7 @@ class GUI:
         """
         SQUARE_SIZE = self.SQUARE_SIZE
         try:
-            bx, by = self.get_coords(
-                *self.to_square(self.node.move.from_square)
-            )
+            bx, by = self.get_coords(*self.to_square(self.node.move.from_square))
             ex, ey = self.get_coords(*self.to_square(self.node.move.to_square))
             d = SQUARE_SIZE // 2
             self.move_arrow = ((bx + d, by + d), (ex + d, ey + d))

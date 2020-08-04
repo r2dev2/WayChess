@@ -31,8 +31,7 @@ class GUI:
         piece = self.piece_at.get(beg, None)
         assert piece is not None, f"{self.piece_at} doesn't have\n\n{beg}"
         if piece in "pP" and (
-            (end[1] == 0 and self.board.turn)
-            or (end[1] == 7 and not self.board.turn)
+            (end[1] == 0 and self.board.turn) or (end[1] == 7 and not self.board.turn)
         ):
             self.is_promoting = True
             self.set_arrows()

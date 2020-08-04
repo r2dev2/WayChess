@@ -109,10 +109,7 @@ class GUIAnalysis(AnalysisDisplay):
         sx, sy = 40, 595
         for j, text in enumerate(wrap_iter(str(i) + ". " + info)):
             self.gui.render_raw_text(
-                text,
-                (sx, sy + i * 50 + j * 20),
-                self.gui.font_engine,
-                (234, 234, 234),
+                text, (sx, sy + i * 50 + j * 20), self.gui.font_engine, (234, 234, 234),
             )
 
     def post_display(self):
@@ -132,9 +129,7 @@ class GUI:
         if not hasattr(self, "engine"):
             self.stdout("Opening engine")
             try:
-                self.engine = chess.engine.SimpleEngine.popen_uci(
-                    self.engine_path
-                )
+                self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
             except Exception as e:
                 self.stdout(self.engine_path)
                 self.stdout("Failed due to", e)
@@ -160,9 +155,7 @@ class GUI:
             )
         )
         # self.analysis_service.start()
-        self.stdout(
-            "set analysis callback started in", time.time() - beg, "seconds"
-        )
+        self.stdout("set analysis callback started in", time.time() - beg, "seconds")
 
     def stop_analysis_task(self):
         try:

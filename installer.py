@@ -54,10 +54,7 @@ def findStockfish() -> Path:
     if "-3" in info:
         toadd = "_modern" if sys.platform != "darwin" else "modern"
     return (
-        pwd
-        / "engines"
-        / "stockfish"
-        / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
+        pwd / "engines" / "stockfish" / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
     )
 
 

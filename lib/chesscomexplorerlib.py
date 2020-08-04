@@ -26,27 +26,15 @@ class Continuation:
         wl, dl, bl = (
             int(length * p) for p in (self.white_f, self.draw_f, self.black_f)
         )
-        gui.render_raw_text(
-            self.forward, start_coords, gui.font_xs, (234, 234, 234)
-        )
+        gui.render_raw_text(self.forward, start_coords, gui.font_xs, (234, 234, 234))
         gfx.filled_polygon(
             gui.screen,
-            [
-                (sx, sy),
-                (sx + length, sy),
-                (sx + length, sy + 10),
-                (sx, sy + 10),
-            ],
+            [(sx, sy), (sx + length, sy), (sx + length, sy + 10), (sx, sy + 10),],
             (000, 000, 000),
         )
         gfx.filled_polygon(
             gui.screen,
-            [
-                (sx, sy),
-                (sx + wl + dl, sy),
-                (sx + wl + dl, sy + 10),
-                (sx, sy + 10),
-            ],
+            [(sx, sy), (sx + wl + dl, sy), (sx + wl + dl, sy + 10), (sx, sy + 10),],
             (117, 117, 117),
         )
         gfx.filled_polygon(
@@ -54,14 +42,7 @@ class Continuation:
             [(sx, sy), (sx + wl, sy), (sx + wl, sy + 10), (sx, sy + 10)],
             (234, 234, 234),
         )
-        return (
-            [
-                (sx, sy),
-                (sx + length, sy),
-                (sx + length, sy + 10),
-                (sx, sy + 10),
-            ],
-        )
+        return ([(sx, sy), (sx + length, sy), (sx + length, sy + 10), (sx, sy + 10),],)
 
     def __str__(self):
         return (
@@ -146,9 +127,7 @@ class GUI:
 
     def update_explorer(self):
         if self.explorer:
-            if self.board.fen() != self.explorer_fen or not hasattr(
-                self, "_explorer"
-            ):
+            if self.board.fen() != self.explorer_fen or not hasattr(self, "_explorer"):
                 self.t_manager.submit(Thread(target=self.update_explorer_task))
             else:
                 ex = self._explorer
