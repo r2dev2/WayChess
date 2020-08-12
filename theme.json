@@ -1,0 +1,42 @@
+{
+	"defaults":
+	{
+		"colours":
+		{
+			"dark_bg": "#151515"
+		}
+	},
+
+	"#engineeval":
+	{
+		"colours":
+		{
+			"regular_text": "#D0D0D0,#FFFFFF,#D050FF,90"		
+		},
+
+		"misc":
+		{
+			"shape": "rounded_rectangle",
+			"shape_corner_radius": 10,
+			"shadow_width": 0
+		}
+	},
+
+	"#engineeval.vertical_scroll_bar":
+	{
+		"misc":
+		{
+			 "shape": "rounded_rectangle",
+			 "shape_corner_radius": 9
+		}
+	},
+
+	"#engineeval.vertical_scroll_bar.button":
+	{
+		"misc":
+		{
+			"shape": "rounded_rectangle",
+			"shape_corner_radius": 7
+		}
+	}
+}

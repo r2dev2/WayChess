@@ -10,6 +10,7 @@ from threading import Thread
 import cpuinfo
 import pygame
 import pygame.gfxdraw
+import pygame_gui
 
 import lib
 from core import Database
@@ -105,6 +106,7 @@ class GUI(lib.GUI):
         self.engine_path = engine_path
         self.create_thread_manager()
         self.create_fps_monitor()
+        self.onui = False
 
         self._display_size = display_size
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
@@ -118,6 +120,8 @@ class GUI(lib.GUI):
         icon = load_img(img / "favicon.ico")
         pygame.display.set_icon(icon)
         self.background()
+        self.create_manager()
+        self.create_ui()
         self.refresh()
 
         self.draw_board()
@@ -144,6 +148,7 @@ class GUI(lib.GUI):
         self._node = value
         self.changed_hist = True
         self.stdout("changed node")
+        self.set_ui_comment(value.comment)
         try:
             if self.is_analysing:
                 self.stop_analysis()
@@ -161,6 +166,7 @@ class GUI(lib.GUI):
         self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
         self.background()
 
+    
     def stdout(self, *args, **kwargs):
         if self.debug:
             print(*args, **kwargs)
@@ -356,8 +362,9 @@ class GUI(lib.GUI):
         except KeyError:
             return
 
-        self.stdout("Called", key)
-        func()
+        if not self.onui:
+            self.stdout("Called", key)
+            func()
 
     def key_release(self, event):
         """
@@ -412,15 +419,16 @@ class GUI(lib.GUI):
 
     def __call__(self):
         """The main event loop"""
-        clock = pygame.time.Clock()
+        clock = pygame.time.Clock() 
         while True:
             # Higher than my refresh rate to allow for quicker processing
-            clock.tick(288)
+            time_delta = clock.tick(288) / 1000.
             try:
                 for event in pygame.event.get():
                     if event.type != 4:
                         self.stdout(repr(event))
-                    self.handle_event(event)
+
+                    self.update_ui(event)
 
             except (
                 AssertionError,
@@ -437,7 +445,13 @@ class GUI(lib.GUI):
                 traceback.print_tb(e.__traceback__)
                 self.exit()
 
-            self.refresh()
+            try:
+                self.manager.update(time_delta)
+                self.manager.draw_ui(self.screen)
+                self.refresh()
+            except Exception as e:
+                print("UI", type(e), e)
+                traceback.print_tb(e.__traceback__)
 
 
 def main():

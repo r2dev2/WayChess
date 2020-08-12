@@ -100,17 +100,20 @@ class GUIAnalysis(AnalysisDisplay):
     def __init__(self, gui):
         self.queue = []
         self.gui = gui
+        self.contents = ['']*3
 
     def pre_display(self):
         # self.gui.clear_analysis()
         pass
 
     def raw_display(self, i, info):
-        sx, sy = 40, 595
-        for j, text in enumerate(wrap_iter(str(i) + ". " + info)):
-            self.gui.render_raw_text(
-                text, (sx, sy + i * 50 + j * 20), self.gui.font_engine, (234, 234, 234),
-            )
+        # sx, sy = 40, 595
+        # for j, text in enumerate(wrap_iter(str(i) + ". " + info)):
+        #     self.gui.render_raw_text(
+        #         text, (sx, sy + i * 50 + j * 20), self.gui.font_engine, (234, 234, 234),
+        #     )
+        self.contents[i-1] = f"{i}. {info}"
+        self.gui.create_engine_box('<br>'.join(self.contents))
 
     def post_display(self):
         pass
@@ -121,7 +124,8 @@ class GUI:
     engine_panel = [(35, 590), (515, 590), (515, 755), (35, 755)]
 
     def clear_analysis(self):
-        gfx.filled_polygon(self.screen, GUI.engine_panel, (21, 21, 21))
+        # gfx.filled_polygon(self.screen, GUI.engine_panel, (21, 21, 21))
+        self.stdout("cleared")
 
     def set_analysis(self):
         self.stdout("Set engine task")
@@ -140,7 +144,6 @@ class GUI:
         self.is_analysing = True
         self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
-        assert type(self.analysis_display) is GUIAnalysis
 
         def get_end():
             nonlocal self

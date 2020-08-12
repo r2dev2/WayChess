@@ -68,6 +68,7 @@ class GUI:
         self.white = not self.white
         self.set_board()
         self.update_explorer()
+        self.stdout("FINISHED FLIPPING")
 
     def get_coords(self, x, y):
         """Gets the screen coordinates at a board point (x,y)"""

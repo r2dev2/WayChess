@@ -1,6 +1,6 @@
 from . import arrowlib, boardlib
 from . import chesscomexplorerlib as ccelib
-from . import enginelib, fpslib, movelib, textlib, threadlib
+from . import enginelib, fpslib, movelib, textlib, threadlib, uilib
 
 
 # Combine all the lib gui method definitions
@@ -13,5 +13,6 @@ class GUI(
     movelib.GUI,
     textlib.GUI,
     threadlib.GUI,
+    uilib.GUI,
 ):
     pass

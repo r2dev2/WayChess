@@ -141,7 +141,7 @@ class GUI:
         SQUARE_SIZE = self.SQUARE_SIZE
         left_boundary = SQUARE_SIZE * 9
         if pos[0] is None:
-            right_boundary = self.display_size[1]
+            right_boundary = 600
             text_len = len(text)
             left = left_boundary + (right_boundary - left_boundary - text_len) // 2
             pos = (left, pos[1])
