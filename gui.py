@@ -106,9 +106,10 @@ class GUI(lib.GUI):
         self.engine_path = engine_path
         self.create_thread_manager()
         self.create_fps_monitor()
+        self.action_queue = []
+        self.action_execute = []
         self.onui = False
 
-        self._display_size = display_size
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
         self.font = pygame.font.Font(pygame.font.match_font("calibri"), 32)
         self.font_small = pygame.font.Font(pygame.font.match_font("calibri"), 24)
@@ -128,6 +129,9 @@ class GUI(lib.GUI):
         self.refresh()
 
         self.set_board()
+        self.refresh()
+
+        self._display_size = display_size
         self.refresh()
 
     @property
@@ -158,11 +162,13 @@ class GUI(lib.GUI):
 
     @property
     def display_size(self):
+        self.stdout("[DISPLAY SIZE GET SEND]", self._display_size)
         return self._display_size
 
     @display_size.setter
     def display_size(self, value):
-        self._diplay_size = value
+        self.stdout("[DISPLAY SIZE SET]", value)
+        self._display_size = value
         self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
         self.background()
 
@@ -444,6 +450,15 @@ class GUI(lib.GUI):
                 print("General", type(e), e)
                 traceback.print_tb(e.__traceback__)
                 self.exit()
+
+            while self.action_execute:
+                try:
+                    self.action_execute.pop(0)()
+                except:
+                    continue
+
+            self.action_execute[:] = self.action_queue[:]
+            self.action_queue[:] = []
 
             try:
                 self.manager.update(time_delta)
