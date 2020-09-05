@@ -95,10 +95,16 @@ class Explorer:
         gfx.filled_polygon(gui.screen, Explorer.panel, (21, 21, 21))
 
     def render(self, gui):
-        self.clear_render(gui)
-        sx, sy = Explorer.panel[0]
-        for i, c in enumerate(self.forwards):
-            c.render(gui, (sx, sy + i * 20))
+        # gui.action_execute.append(lambda: self.clear_render(gui))
+        with gui.display_lock:
+        # if 0:
+            self.clear_render(gui)
+            sx, sy = Explorer.panel[0]
+            # buffer = [lambda: (c.render(gui, (sx, sy + i * 20), print(c)))
+            #           for i, c in enumerate(self.forwards)]
+            for i, c in enumerate(self.forwards):
+                c.render(gui, (sx, sy + i * 20))
+            # gui.action_queue.extend(buffer)
 
     def __repr__(self):
         return repr(self.forwards)

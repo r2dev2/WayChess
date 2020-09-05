@@ -5,7 +5,7 @@ import time
 import traceback
 from multiprocessing import freeze_support
 from pathlib import Path
-from threading import Thread
+from threading import Thread, Lock
 
 import cpuinfo
 import pygame
@@ -43,6 +43,7 @@ def get_engine_path(pwd):
 
 
 pygame.init()
+pygame.mixer.quit()
 
 
 def load_img(path):
@@ -205,7 +206,8 @@ class GUI(lib.GUI):
         self.screen.fill((21, 21, 21))
 
     def refresh(self):
-        pygame.display.update()
+        with self.display_lock:
+            pygame.display.update()
         self.fps_monitor.increment()
 
     def clear_variation(self):
@@ -454,8 +456,9 @@ class GUI(lib.GUI):
             while self.action_execute:
                 try:
                     self.action_execute.pop(0)()
-                except:
-                    continue
+                except Exception as e:
+                    print(e)
+                    pass
 
             self.action_execute[:] = self.action_queue[:]
             self.action_queue[:] = []

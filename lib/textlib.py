@@ -75,11 +75,12 @@ class GUI:
           * Move comments
           * Move marks eg. ! ?
         """
-        if self.changed_hist:
-            self.move_hist = self.render_history_task()
-            self.changed_hist = False
-        else:
-            self.render_history_task(self.move_hist)
+        with self.display_lock:
+            if self.changed_hist:
+                self.move_hist = self.render_history_task()
+                self.changed_hist = False
+            else:
+                self.render_history_task(self.move_hist)
 
     def render_history_task(self, moves=None):
         """

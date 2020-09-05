@@ -1,5 +1,5 @@
 import time
-from threading import Thread
+from threading import Lock, Thread
 
 
 class FPSMonitor(Thread):
@@ -8,10 +8,12 @@ class FPSMonitor(Thread):
         self.refreshes = 0
         self.filename = filename
         self.interval = interval
+        self.lock = Lock()
         self.daemon = True
 
     def increment(self):
-        self.refreshes += 1
+        with self.lock:
+            self.refreshes += 1
 
     def run(self):
         with open(self.filename, "w+") as fout:
@@ -24,5 +26,5 @@ class FPSMonitor(Thread):
 
 class GUI:
     def create_fps_monitor(self):
-        self.fps_monitor = FPSMonitor("log", 0.4)
+        self.fps_monitor = FPSMonitor("log", 0.4 if self.debug else 5)
         self.fps_monitor.start()

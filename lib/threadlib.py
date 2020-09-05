@@ -2,7 +2,8 @@
 Garbage collect all of the completed threading.Thread
 """
 import gc
-from threading import Thread
+from queue import Queue
+from threading import Lock, Thread
 from time import sleep
 
 
@@ -40,13 +41,36 @@ class GCService(Thread):
             sleep(1)
 
 
-class GUI:
-    def create_thread_manager(self):
-        def end():
-            nonlocal self
-            try:
-                return self.is_exiting
-            except AttributeError:
-                return False
+class DelayedExecution(Thread):
+    def __init__(self, delay, endfunc, *args, **kwargs):
+        Thread.__init__(self, *args, **kwargs)
+        self.queue = Queue()
+        self.daemon = True
+        self.delay = delay
+        self._endfunc = endfunc
+        self.start()
 
-        self.t_manager = GCService(end)
+    def submit(self, func):
+        self.queue.put(func)
+
+    def run(self):
+        while not self._endfunc():
+            while self.queue.qsize()>1:
+                self.queue.get()
+            func = self.queue.get()
+            sleep(self.delay)
+            if self.queue.qsize() == 0:
+                func()
+
+
+class GUI:
+    def program_end_flag(self):
+        try:
+            return self.is_exiting
+        except AttributeError:
+            return False
+
+    def create_thread_manager(self):
+        self.display_lock = Lock()
+        self.t_manager = GCService(self.program_end_flag)
+        self.d_manager = DelayedExecution(.2, self.program_end_flag)

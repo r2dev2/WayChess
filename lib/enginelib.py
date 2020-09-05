@@ -103,21 +103,40 @@ class GUIAnalysis(AnalysisDisplay):
         self.contents = ['']*3
 
     def pre_display(self):
-        # self.gui.clear_analysis()
         pass
 
     def raw_display(self, i, info):
-        # sx, sy = 40, 595
-        # for j, text in enumerate(wrap_iter(str(i) + ". " + info)):
-        #     self.gui.render_raw_text(
-        #         text, (sx, sy + i * 50 + j * 20), self.gui.font_engine, (234, 234, 234),
-        #     )
         self.contents[i-1] = f"{i}. {info}"
-        self.gui.create_engine_box('<br>'.join(self.contents))
+        html = '<br>'.join(self.contents)
+        # self.gui.d_manager.submit(
+        #         threading.Thread(
+        #             target= lambda : self.gui.create_engine_box(html)).start)
+        # The command that fucks up the program speed
+        # self.gui.d_manager.submit(lambda : (
+        #     b:=time.time(),
+        #     threading.Thread(target=lambda : self.gui.create_engine_box(html)).start(),
+        #     print("ENGINE UPDATE IN", time.time()-b))
+        # )
+        def task():
+            nonlocal self, html
+            b = time.time()
+            with self.gui.display_lock:
+                self.gui.create_engine_box(html)
+            print("ENGINE UPDATE IN", time.time()-b)
+
+        self.gui.d_manager.submit(task)
+
+    # def print(self, *args, **kwargs):
+    #     printfunc = lambda : AnalysisDisplay.print(self, *args, **kwargs)
+    #     try:
+    #         self.gui.t_manager.submit(threading.Thread(
+    #             target=printfunc))
+    #     except Exception as e:
+    #         print(e)
+    #         raise e
 
     def post_display(self):
         pass
-        # self.gui.refresh()
 
 
 class GUI:

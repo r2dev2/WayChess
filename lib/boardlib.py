@@ -85,10 +85,11 @@ class GUI:
         coords = self.get_coords(x, y)
         # self.piece_at[(x, y)] = None
 
-        if (x + y) % 2:
-            self.screen.blit(self.dark, coords)
-        else:
-            self.screen.blit(self.light, coords)
+        with self.display_lock:
+            if (x + y) % 2:
+                self.screen.blit(self.dark, coords)
+            else:
+                self.screen.blit(self.light, coords)
 
     def draw_board(self):
         """Draws the empty board"""

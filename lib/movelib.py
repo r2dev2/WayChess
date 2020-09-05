@@ -16,7 +16,8 @@ class GUI:
             self.screen.blit(self.check, self.get_coords(*position))
         else:
             self.draw_square(*position)
-        self.screen.blit(self.piece_to_img[piece], self.get_coords(*position))
+        with self.display_lock:
+            self.screen.blit(self.piece_to_img[piece], self.get_coords(*position))
         assert all(0 <= val <= 7 for val in position), str(position)
         self.piece_at[position] = piece
 
