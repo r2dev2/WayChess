@@ -108,32 +108,14 @@ class GUIAnalysis(AnalysisDisplay):
     def raw_display(self, i, info):
         self.contents[i-1] = f"{i}. {info}"
         html = '<br>'.join(self.contents)
-        # self.gui.d_manager.submit(
-        #         threading.Thread(
-        #             target= lambda : self.gui.create_engine_box(html)).start)
-        # The command that fucks up the program speed
-        # self.gui.d_manager.submit(lambda : (
-        #     b:=time.time(),
-        #     threading.Thread(target=lambda : self.gui.create_engine_box(html)).start(),
-        #     print("ENGINE UPDATE IN", time.time()-b))
-        # )
+
         def task():
             nonlocal self, html
             b = time.time()
-            with self.gui.display_lock:
-                self.gui.create_engine_box(html)
-            print("ENGINE UPDATE IN", time.time()-b)
+            self.gui.create_engine_box(html)
+            self.gui.stdout("ENGINE UPDATE IN", time.time()-b)
 
         self.gui.d_manager.submit(task)
-
-    # def print(self, *args, **kwargs):
-    #     printfunc = lambda : AnalysisDisplay.print(self, *args, **kwargs)
-    #     try:
-    #         self.gui.t_manager.submit(threading.Thread(
-    #             target=printfunc))
-    #     except Exception as e:
-    #         print(e)
-    #         raise e
 
     def post_display(self):
         pass
@@ -143,7 +125,6 @@ class GUI:
     engine_panel = [(35, 590), (515, 590), (515, 755), (35, 755)]
 
     def clear_analysis(self):
-        # gfx.filled_polygon(self.screen, GUI.engine_panel, (21, 21, 21))
         self.stdout("cleared")
 
     def set_analysis(self):
@@ -158,8 +139,6 @@ class GUI:
                 self.stdout("Failed due to", e)
                 self.exit()
             # self.engine.configure({"MultiPV": 3})
-        # _, self.engine = await
-        # chess.engine.popen_uci("Engines/stockfish_bmi2.exe")
         self.is_analysing = True
         self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
@@ -168,7 +147,6 @@ class GUI:
             nonlocal self
             return not self.is_analysing
 
-        # self.analysis_service = threading.Thread(target=analysis,
         self.t_manager.submit(
             threading.Thread(
                 target=analysis,
@@ -176,7 +154,6 @@ class GUI:
                 daemon=True,
             )
         )
-        # self.analysis_service.start()
         self.stdout("set analysis callback started in", time.time() - beg, "seconds")
 
     def stop_analysis_task(self):
@@ -197,17 +174,11 @@ class GUI:
             self.stdout(type(e), e)
 
     def engine_callback(self):
-        # try:
-        # print("calling engine callback", self.show_engine)
-        # except AttributeError:
-        # print("calling engine callback", "undefined")
         try:
             if not self.show_engine:
-                # print("gone down engine_callback")
                 self.set_analysis()
             else:
                 self.stop_analysis()
-                # print("show_engine changed to", self.show_engine)
         except AttributeError:
             self.show_engine = True
             self.is_analysing = True

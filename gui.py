@@ -175,6 +175,9 @@ class GUI(lib.GUI):
         if self.debug:
             print(*args, **kwargs)
 
+    def stderr(self, *args, **kwargs):
+        return self.stdout(*args, **kwargs)
+
     def right_panel(self):
         if not self.show_explorer:
             self.render_history()
@@ -348,17 +351,17 @@ class GUI(lib.GUI):
             dispatch_table = self.key_pressed_dispatch
         except AttributeError:
             self.key_pressed_dispatch = {
-                276: self.move_back,  # left arrow key
-                275: self.move_forward,  # right arrow key
-                102: self.flip,  # f
-                115: self.save_pgn,  # s
-                -110: self.create_game,  # ctrl n
-                110: self.next_game,  # n
-                98: self.previous_game,  # b
+                276: self.move_back,  #       left arrow key
+                275: self.move_forward,  #    right arrow key
+                102: self.flip,  #            f
+                115: self.save_pgn,  #        s
+                -110: self.create_game,  #    ctrl n
+                110: self.next_game,  #       n
+                98: self.previous_game,  #    b
                 101: self.engine_callback,  # e
-                111: self.load_pgn,  # o
-                120: self.explorer,  # x
-                113: self.exit,  # q
+                111: self.load_pgn,  #        o
+                120: self.explorer,  #        x
+                113: self.exit,  #            q
             }
             dispatch_table = self.key_pressed_dispatch
 
@@ -446,7 +449,7 @@ class GUI(lib.GUI):
                 self.stdout(type(e), e)
                 traceback.print_tb(e.__traceback__)
             except Exception as e:
-                print("General", type(e), e)
+                self.stderr("General", type(e), e)
                 traceback.print_tb(e.__traceback__)
                 self.exit()
 
@@ -454,8 +457,7 @@ class GUI(lib.GUI):
                 try:
                     self.action_execute.pop(0)()
                 except Exception as e:
-                    print(e)
-                    pass
+                    self.stderr(e)
 
             self.action_execute[:] = self.action_queue[:]
             self.action_queue[:] = []
@@ -465,7 +467,7 @@ class GUI(lib.GUI):
                 self.manager.draw_ui(self.screen)
                 self.refresh()
             except Exception as e:
-                print("UI", type(e), e)
+                self.stderr("UI", type(e), e)
                 traceback.print_tb(e.__traceback__)
 
 

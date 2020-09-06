@@ -16,7 +16,7 @@
 
 		"misc":
 		{
-			"shape": "rounded_rectangle",
+			"shape": "rectangle",
 			"shape_corner_radius": 10,
 			"shadow_width": 0
 		}
