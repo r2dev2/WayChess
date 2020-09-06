@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import sys
@@ -20,25 +21,21 @@ pwd = Path.home() / ".waychess"
 img = pwd / "img"
 pgn_path = pwd / "test.pgn"
 
-STOCKFISH_LOCATION = {
-    "win32": r"stockfish-11-win\Windows\stockfish_20011801_x64{}.exe",
-    "linux": "stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
-    "linux32": "stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
-    "darwin": "stockfish-11-mac/Mac/stockfish-11-{}",
-}
-
+with open(pwd / "stockfish_links.json", 'r') as fin:
+    stockfish_info = json.loads(fin.read())
 
 def get_engine_path(pwd):
-    toadd = "_bmi2" if sys.platform != "darwin" else "bmi2"
-    info = cpuinfo.get_cpu_info()["brand"]
-    # Intel 2nd gen
-    if "-2" in info:
-        toadd = ""
-    # Intel 3rd gen
-    if "-3" in info:
-        toadd = "_modern" if sys.platform != "darwin" else "modern"
+    platform = sys.platform.replace("32", '')
+    flags = cpuinfo.get_cpu_info()["flags"]
+    if "bmi2" in flags:
+        version = "bmi2"
+    elif "popcnt" in flags:
+        version = "popcnt"
+    else:
+        version = "64bit"
+    location = stockfish_info[platform][version]["file"]
     return (
-        pwd / "engines" / "stockfish" / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
+        pwd / "engines" / "stockfish" / location
     )
 
 

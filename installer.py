@@ -1,4 +1,6 @@
+import json
 import os
+import shutil
 import stat
 import sys
 import zipfile
@@ -10,33 +12,30 @@ from threading import Thread
 import cpuinfo
 import requests
 
-STOCKFISH_DOWNLOAD = {
-    "win32": "https://stockfishchess.org/files/stockfish-11-win.zip",
-    "linux": "https://stockfishchess.org/files/stockfish-11-linux.zip",
-    "linux32": "https://stockfishchess.org/files/stockfish-11-linux.zip",
-    "darwin": "https://stockfishchess.org/files/stockfish-11-mac.zip",
-}
-
-STOCKFISH_LOCATION = {
-    "win32": r"stockfish-11-win\Windows\stockfish_20011801_x64{}.exe",
-    "linux": "stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
-    "linux32": "stockfish-11-linux/Linux/stockfish_20011801_x64_{}",
-    "darwin": "stockfish-11-mac/Mac/stockfish-11-{}",
-}
-
 
 # working directory will be ~/.waychess
 pwd = Path.home() / ".waychess"
 
+try:
+    with open(pwd / "stockfish_links.json", 'r') as fin:
+        text = fin.read()
+except FileNotFoundError:
+    r = requests.get(
+            "https://raw.githubusercontent.com/r2dev2bb8/"
+            "WayChess/master/stockfish_links.json"
+        )
+    text = r.text
 
-def unzip(filepath: str, resultpath: str) -> None:
-    with zipfile.ZipFile(filepath, "r") as zip_ref:
-        zip_ref.extractall(resultpath)
+stockfish_info = json.loads(text)
+
+flags = cpuinfo.get_cpu_info()["flags"]
 
 
 # I know this is camel case, pls don't crucify me
 def downloadStockfish() -> None:
-    link = STOCKFISH_DOWNLOAD[sys.platform]
+    stock_ver = which_stockfish()
+    platform = sys.platform.replace("32", '')
+    link = stockfish_info[platform][stock_ver]["link"]
     print("Installing stockfish from", link)
     call(["curl", "-o", "stockfish.zip", link])
     unzip("stockfish.zip", pwd / "engines" / "stockfish")
@@ -47,22 +46,38 @@ def downloadStockfish() -> None:
 
 
 def findStockfish() -> Path:
-    toadd = "_bmi2" if sys.platform != "darwin" else "bmi2"
-    info = cpuinfo.get_cpu_info()["brand"]
-    if "-2" in info:
-        toadd = ""
-    if "-3" in info:
-        toadd = "_modern" if sys.platform != "darwin" else "modern"
+    stock_ver = which_stockfish()
+    platform = sys.platform.replace("32", '')
+    location = stockfish_info[platform][stock_ver]["file"]
     return (
-        pwd / "engines" / "stockfish" / (STOCKFISH_LOCATION[sys.platform]).format(toadd)
+        pwd / "engines" / "stockfish" / location
     )
+
+def which_stockfish() -> str:
+    """
+    Returns which stockfish version to use.
+
+    Changing stockfish version only supported on intel.
+    When run on AMD, will always return "bmi2".
+
+    :return: "bmi2", "popcnt", or "64bit"
+    """
+    if "bmi2" in flags:
+        return "bmi2"
+    elif "popcnt" in flags:
+        return "popcnt"
+    else:
+        return "64bit"
 
 
 def create_dir(path):
     try:
         os.mkdir(path)
     except FileExistsError:
-        return
+        shutil.rmtree(path)
+        os.mkdir(path)
+    with open(pwd / "stockfish_links.json", 'w+') as fout:
+        print(text, file=fout)
 
 
 def img_download_task(pwd, img):

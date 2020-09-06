@@ -1,3 +1,6 @@
+import time
+from threading import Thread, get_ident
+
 import pygame as pg
 import pygame_gui as pgg
 
@@ -115,9 +118,13 @@ class GUI:
     def create_engine_box(self, text=''):
         try:
             self.engine_box.html_text = text
+            b = time.time()
             self.engine_box.rebuild()
+            self.stdout("[UI] Engine box rebuild at t =", time.time()-b, "seconds")
             self.engine_box.show()
+            self.stdout("[UI] Engine box show at t =", time.time()-b, "seconds")
         except AttributeError:
+            b = time.time()
             self.engine_box = TextShow(
                     lambda : self.stdout("focus"),
                     lambda : self.stdout("unfocus"),
@@ -131,6 +138,7 @@ class GUI:
             self.engine_box.hide()
             self.engine_box.show()
             GUI.has_made_ui = True
+            self.stdout("[UI] INIT: Built engine box in %f seconds" % (time.time()-b))
 
     def create_manager(self):
         try:
