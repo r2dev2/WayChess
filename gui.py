@@ -432,7 +432,13 @@ class GUI(lib.GUI):
             # Higher than my refresh rate to allow for quicker processing
             time_delta = clock.tick(288) / 1000.
             try:
-                for event in pygame.event.get():
+                if self.button_pressed[1]:
+                    for event in pygame.event.get():
+                        if event.type != 4:
+                            self.stdout(repr(event))
+                        self.update_ui(event)
+                else:
+                    event = pygame.event.wait()
                     if event.type != 4:
                         self.stdout(repr(event))
 

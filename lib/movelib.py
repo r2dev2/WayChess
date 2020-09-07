@@ -53,12 +53,6 @@ class GUI:
                 self.background()
                 return
             self.set_board()
-            # self.piece_at[beg] = None
-            # self.draw_square(*beg)
-            # self.draw_piece(piece, end)
-            # self.draw_checked()
-            # self.set_board()
-            # self.clear_variation()
 
     def draw_promote_menu(self, coords, in_focus=None):
         """
