@@ -26,10 +26,16 @@ except FileNotFoundError:
         )
     text = r.text
 
+
+
 stockfish_info = json.loads(text)
 
-flags = cpuinfo.get_cpu_info()["flags"]
+flags = []
 
+
+def unzip(filepath: str, resultpath: str) -> None:
+    with zipfile.ZipFile(filepath, 'r') as zip_ref:
+        zip_ref.extractall(resultpath)
 
 # I know this is camel case, pls don't crucify me
 def downloadStockfish() -> None:
@@ -38,7 +44,7 @@ def downloadStockfish() -> None:
     link = stockfish_info[platform][stock_ver]["link"]
     print("Installing stockfish from", link)
     call(["curl", "-o", "stockfish.zip", link])
-    unzip("stockfish.zip", pwd / "engines" / "stockfish")
+    unzip("stockfish.zip", str(pwd / "engines" / "stockfish"))
     os.remove("stockfish.zip")
     stockfishexecutable = str(findStockfish())
     if sys.platform != "win32":
@@ -76,8 +82,31 @@ def create_dir(path):
     except FileExistsError:
         shutil.rmtree(path)
         os.mkdir(path)
+
+
+def init():
     with open(pwd / "stockfish_links.json", 'w+') as fout:
         print(text, file=fout)
+    r = requests.get(
+            "https://raw.githubusercontent.com/r2dev2bb8/"
+            "WayChess/master/theme.json"
+        )
+
+    with open(pwd / "theme.json", 'w+') as fout:
+        print(r.text, file=fout)
+
+    os.mkdir(pwd / "data")
+    for filename in (
+            "default_theme.json", "FiraCode-Bold.ttf",
+            "FiraCode-Regular.ttf", "FiraMono-BoldItalic.ttf",
+            "FiraMono-RegularItalic.ttf"):
+        r = requests.get(
+                "https://raw.githubusercontent.com/MyreMylar/"
+                f"pygame_gui/main/pygame_gui/data/{filename}"
+            )
+        with open(pwd / "data" / filename, 'wb+') as fout:
+            fout.write(r.content)
+
 
 
 def img_download_task(pwd, img):
@@ -117,8 +146,10 @@ def download_img():
 
 if __name__ == "__main__":
     freeze_support()
+    flags[:] = cpuinfo.get_cpu_info()["flags"]
     try:
         create_dir(pwd)
+        init()
         downloadStockfish()
         print("Stockfish has been installed at", findStockfish())
         print("Downloading default images")

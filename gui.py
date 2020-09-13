@@ -107,6 +107,7 @@ class GUI(lib.GUI):
         self.action_queue = []
         self.action_execute = []
         self.onui = False
+        self.pwd = pwd
 
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
         self.font = pygame.font.Font(pygame.font.match_font("calibri"), 32)
@@ -177,6 +178,13 @@ class GUI(lib.GUI):
 
     def stderr(self, *args, **kwargs):
         return self.stdout(*args, **kwargs)
+
+    def print_tb(self, e):
+        """
+        Prints the traceback of exception ``e``
+        """
+        if self.debug:
+            traceback.print_tb(e.__traceback__)
 
     def right_panel(self):
         if not self.show_explorer:
@@ -432,7 +440,7 @@ class GUI(lib.GUI):
             # Higher than my refresh rate to allow for quicker processing
             time_delta = clock.tick(288) / 1000.
             try:
-                if self.button_pressed[1]:
+                if self.button_pressed[1] or self.onui:
                     for event in pygame.event.get():
                         if event.type != 4:
                             self.stdout(repr(event))
@@ -453,10 +461,10 @@ class GUI(lib.GUI):
                 ValueError,
             ) as e:
                 self.stdout(type(e), e)
-                traceback.print_tb(e.__traceback__)
+                self.print_tb(e)
             except Exception as e:
                 self.stderr("General", type(e), e)
-                traceback.print_tb(e.__traceback__)
+                self.print_tb(e)
                 self.exit()
 
             while self.action_execute:
@@ -473,8 +481,8 @@ class GUI(lib.GUI):
                 self.manager.draw_ui(self.screen)
                 self.refresh()
             except Exception as e:
-                self.stderr("UI", type(e), e)
-                traceback.print_tb(e.__traceback__)
+                self.stderr("[UI]", type(e), e)
+                self.print_tb(e)
 
 
 def main():

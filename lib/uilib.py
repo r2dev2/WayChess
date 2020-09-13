@@ -51,7 +51,6 @@ class GUI:
             self.create_ui_comment()
 
             self.create_engine_box()
-            self.engine_box.hide()
             
             self.create_ui_comment_edit()
             self.comment_edit_box.hide()
@@ -97,14 +96,14 @@ class GUI:
                     lambda : None,
                     '',
                     pg.Rect((45, 555), (445, 630)),
-                    self.manager)
+                    self.manager,
+                    object_id="#commentshow")
         self.comment_box.set_dimensions((400, 630-555))
 
     def create_ui_comment_edit(self):
         self.comment_edit_box = TextEntry(
                     onfocus=lambda : self.set_ui(True),
                     onunfocus=lambda : self.set_ui_comment(),
-                    # relative_rect=pg.Rect((45, 610), (445, -1)),
                     relative_rect = pg.Rect((45, 555), (445, -1)),
                     manager=self.manager,
                     object_id="#commentedit")
@@ -144,7 +143,7 @@ class GUI:
         try:
             self.manager
         except AttributeError:
-            self.manager = pgg.UIManager((800, 800), "theme.json")
+            self.manager = pgg.UIManager((800, 800), self.pwd / "theme.json")
 
     def set_ui(self, val=None):
         if val is None:

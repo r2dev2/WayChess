@@ -107,7 +107,7 @@ class GUIAnalysis(AnalysisDisplay):
 
     def raw_display(self, i, info):
         self.contents[i-1] = f"{i}. {info}"
-        html = '<br>'.join(self.contents)
+        html = '<br> <br>'.join(self.contents)
 
         def task():
             nonlocal self, html
@@ -118,7 +118,8 @@ class GUIAnalysis(AnalysisDisplay):
         self.gui.d_manager.submit(task)
 
     def post_display(self):
-        pass
+        self.gui.manager.draw_ui(self.gui.screen)
+        self.gui.refresh()
 
 
 class GUI:
