@@ -42,7 +42,11 @@ make test
 ## Goals
 
   - [x] Open source chess gui
-  - [ ] Fully-featured (comments, variations, annotations, etc.)
+  - [ ] Fully-featured
+      - [x] Comments
+      - [ ] Variations
+      - [ ] Annotations
+      - [ ] Engine matches
   - [ ] Easy to install
   - [ ] Fluid design
   - [x] Cross-platform
