@@ -32,6 +32,7 @@ class TextShow(pgg.elements.UITextBox):
         super().__init__(*args, **kwargs)
         self._focus_callback = onfocus
         self._unfocus_callback = onunfocus
+        self.coords = None
 
     def focus(self, *args, **kwargs):
         self._focus_callback()
@@ -40,6 +41,12 @@ class TextShow(pgg.elements.UITextBox):
     def unfocus(self, *args, **kwargs):
         self._unfocus_callback()
         super().unfocus(*args, **kwargs)
+
+    def contains(self, x, y):
+        coords = self.coords
+        return \
+                coords[0][0] <= x <= coords[1][0] \
+                and coords[0][1] <= x <= coords[1][1]
 
 
 class GUI:
@@ -116,6 +123,19 @@ class GUI:
 
     def create_engine_box(self, text=''):
         try:
+            try:
+                self.engine_box_queue.append(text)
+            except AttributeError:
+                self.engine_box_queue = [text]
+            with self.engine_box_lock:
+                self.create_engine_box_task(self.engine_box_queue[-1])
+                self.engine_box_queue[:] = []
+        except Exception as e:
+            self.stderr(e)
+
+    def create_engine_box_task(self, text=''):
+        try:
+            self.stdout("[UI] Engine box rebuild")
             self.engine_box.html_text = text
             b = time.time()
             self.engine_box.rebuild()
@@ -131,6 +151,8 @@ class GUI:
                     relative_rect=pg.Rect((35, 650), (755, 795)), 
                     manager=self.manager,
                     object_id="#engineeval")
+            
+            self.engine_box.coords = ((35, 650), (755, 795)) 
 
             # Need to set dimensions again due to pygame_gui bug
             self.engine_box.set_dimensions((755-35, 795-650))
@@ -143,7 +165,7 @@ class GUI:
         try:
             self.manager
         except AttributeError:
-            self.manager = pgg.UIManager((800, 800), self.pwd / "theme.json")
+            self.manager = pgg.UIManager((800, 850), self.pwd / "theme.json")
 
     def set_ui(self, val=None):
         if val is None:

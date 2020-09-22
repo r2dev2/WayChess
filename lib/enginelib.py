@@ -67,7 +67,7 @@ def eval_to_str(ev):
         raise e
 
 
-def analysis(engine, display, board=chess.Board(), end=lambda: False):
+def analysis(engine, display, board=chess.Board(), end=lambda: False, options={"multipv": 3}):
     """
     Syncronous analysis for use in a threading.Thread
 
@@ -77,7 +77,7 @@ def analysis(engine, display, board=chess.Board(), end=lambda: False):
     :param end: the function telling whether to stop analysis
     """
     try:
-        with engine.analysis(board, multipv=3) as analysis:
+        with engine.analysis(board, **options) as analysis:
             for info in analysis:
                 display.add(info, chess.Board(board.fen()))
 
@@ -132,7 +132,7 @@ class GUI:
         self.stdout("Set engine task")
         beg = time.time()
         if not hasattr(self, "engine"):
-            self.stdout("Opening engine")
+            self.stdout("Opening engine", self.engine_path)
             try:
                 self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
             except Exception as e:
@@ -140,6 +140,7 @@ class GUI:
                 self.stdout("Failed due to", e)
                 self.exit()
             # self.engine.configure({"MultiPV": 3})
+            self.engine.configure({"Hash": 1024})
         self.is_analysing = True
         self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
@@ -151,7 +152,14 @@ class GUI:
         self.t_manager.submit(
             threading.Thread(
                 target=analysis,
-                args=(self.engine, self.analysis_display, self.board, get_end),
+                args=(
+                    self.engine, 
+                    self.analysis_display, 
+                    self.board, 
+                    get_end, {
+                        "multipv": 3,
+                    }
+                ),
                 daemon=True,
             )
         )

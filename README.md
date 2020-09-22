@@ -14,6 +14,16 @@ cd WayChess
 make
 ```
 
+### Linux
+
+You may need to install the following extra dependencies
+
+```
+sudo apt install mercurial python3-dev libjpeg-dev libportmidi-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl1.2-dev libsmpeg-dev libx11-dev libavformat-dev libswscale-dev python3-tk
+chmod +x cleartype-install-linux.bash
+./cleartype-install-linux.bash
+```
+
 ## Usage
 
 Keybindings:

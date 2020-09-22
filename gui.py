@@ -108,6 +108,7 @@ class GUI(lib.GUI):
         self.action_execute = []
         self.onui = False
         self.pwd = pwd
+        self.engine_box_lock = Lock()
 
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
         self.font = pygame.font.Font(pygame.font.match_font("calibri"), 32)
@@ -267,7 +268,14 @@ class GUI(lib.GUI):
             self.beg, self.end = None, None
 
         if button == 1:
+            self.stdout("BUTTON 1 RELEASE", self.engine_box_lock.locked())
             self.set_board()
+            if self.engine_box_lock.locked():
+                for i in range(10):
+                    print("GOING TO RELEASE RELEASE RELEASE")
+                self.engine_box_lock.release()
+                for i in range(10):
+                    print("RELEASE RELEASE RELEASE")
 
         if button == 3:
             self.draw_arrow(self.beg_click, p_coords)
@@ -405,6 +413,8 @@ class GUI(lib.GUI):
         received = self.receive_coords(*event.pos)
         if event.button == 1:
             self.beg_first = received
+            if self.engine_box.contains(*event.pos):
+                self.engine_box_lock.acquire()
         self.beg_click = received
         self.beg_raw_click = event.pos
 

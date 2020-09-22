@@ -104,6 +104,9 @@ class Explorer:
             #           for i, c in enumerate(self.forwards)]
             for i, c in enumerate(self.forwards):
                 c.render(gui, (sx, sy + i * 20))
+        if 1:
+            gui.d_manager.submit(gui.refresh)
+            # gui.refresh()
             # gui.action_queue.extend(buffer)
 
     def __repr__(self):
