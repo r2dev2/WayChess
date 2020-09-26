@@ -149,9 +149,10 @@ class GUI:
         :param end: the raw coordinates of the end of the arrow
         :return: None
         """
-        if color is None:
-            color = self.arrow_color
-        arrow(self.screen, color, color, start, end, 20, 20)
+        if all(0 <= val <= 68*8 for val in [*start, *end]):
+            if color is None:
+                color = self.arrow_color
+            arrow(self.screen, color, color, start, end, 20, 20)
 
     def draw_arrow(self, start, end):
         """

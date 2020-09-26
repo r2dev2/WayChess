@@ -1,5 +1,8 @@
+import json
 import threading
 import time
+import webbrowser
+from pathlib import Path
 
 import chess
 import chess.engine
@@ -122,11 +125,28 @@ class GUIAnalysis(AnalysisDisplay):
         self.gui.refresh()
 
 
+def get_config(default_options={}):
+    try:
+        with open(Path.home() / ".waychess" / "engineoptions.json", 'r') as fin:
+            return {
+                k: v for k, v in json.loads(fin.read()).items()
+                if k.lower() not in {"ponder", "multipv", "uci_chess960"}
+            }
+    except FileNotFoundError:
+        with open(Path.home() / ".waychess" / "engineoptions.json", 'w+') as fout:
+            print(json.dumps(default_options, indent=4), file=fout, flush=True)
+        return dict()
+
+
 class GUI:
     engine_panel = [(35, 590), (515, 590), (515, 755), (35, 755)]
 
     def clear_analysis(self):
         self.stdout("cleared")
+
+    @staticmethod
+    def configure_engine_options():
+        webbrowser.open(str(Path.home() / ".waychess" / "engineoptions.json"))
 
     def set_analysis(self):
         self.stdout("Set engine task")
@@ -139,8 +159,10 @@ class GUI:
                 self.stdout(self.engine_path)
                 self.stdout("Failed due to", e)
                 self.exit()
-            # self.engine.configure({"MultiPV": 3})
-            self.engine.configure({"Hash": 1024})
+            self.stdout("Loading engine options")
+            self.engine.configure(get_config({
+                k: v.default for k, v in self.engine.options.items()
+            }))
         self.is_analysing = True
         self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
