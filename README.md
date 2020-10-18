@@ -58,6 +58,7 @@ make test
       - [ ] Variations
       - [ ] Annotations
       - [ ] Engine matches
+      - [x] Engine options
   - [ ] Easy to install
   - [ ] Fluid design
   - [x] Cross-platform
@@ -67,5 +68,5 @@ make test
 
 ## Progress
 
-Navigation is controlled by keybindings instead of button right now. Comments, variations, and annotations have yet to be added. The chess.com database explorer (doesn't need to login) and the engine have been somewhat stably implemented.
+Navigation is controlled by keybindings instead of button right now. Comments, variations, and annotations have yet to be added. The chess.com database explorer (doesn't need to login) and the engine have been stably implemented. School and CollegeBoard tests are ramping up for me so I can't work on this for much time as of now.
 

@@ -82,6 +82,7 @@ class GUI(lib.GUI):
         }
 
         # Initialize internal variables
+        self.init_explorer()
         self.SQUARE_SIZE = 68
         self.debug = "--debug" in sys.argv
         self.piece_at = dict()
@@ -410,6 +411,7 @@ class GUI(lib.GUI):
             self.engine.quit()
         except BaseException:
             pass
+        self.e_manager.end()
         sys.exit()
 
     def click(self, event):

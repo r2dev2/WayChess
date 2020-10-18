@@ -55,7 +55,7 @@ class DelayedExecution(Thread):
 
     def run(self):
         while not self._endfunc():
-            while self.queue.qsize()>1:
+            while self.queue.qsize() > 1:
                 self.queue.get()
             func = self.queue.get()
             sleep(self.delay)

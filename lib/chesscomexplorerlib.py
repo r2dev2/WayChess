@@ -1,9 +1,13 @@
-from threading import Thread
+import json
+from pathlib import Path
+from queue import Queue
+from threading import Event, Lock, Thread
 
 import chess
 import pygame.gfxdraw as gfx
 import requests
 
+pwd = Path.home() / ".waychess"
 
 class Continuation:
     def __init__(self, c_json):
@@ -58,16 +62,27 @@ class Continuation:
 class Explorer:
     """
     A class to represent the results from chess.com's opening explorer
-    """
 
+    Panel of following rectangle:
+    
+    (825, 75)-----(1180, 75)
+        |              |    
+        |              |    
+        |              |
+        |              |
+        |              |
+        |              |
+    (825, 610)----(1180, 610)
+    """
     panel = [(825, 75), (1180, 75), (1180, 610), (825, 610)]
 
-    def __init__(self, fen=chess.Board().fen()):
+    def __init__(self, cache_service, fen=chess.Board().fen()):
+        self._cache_service = cache_service
         continuations = self.get_continuations(fen)
         self.forwards = [Continuation(c) for c in continuations]
 
     @staticmethod
-    def get_continuations(fen):
+    def get_continuations_internet(fen):
         """
         Gets the continuations from the fen in json form
 
@@ -89,6 +104,18 @@ class Explorer:
             return r.json()["suggestedMoves"]
         except BaseException:
             return []
+
+    def get_continuations(self, fen):
+        cache = dict()
+        self._cache_service.get_cache(cache)
+        if fen in cache:
+            self._cache_service.update_cache(fen)
+            return cache[fen]
+        else:
+            self._cache_service.update_cache(fen, True)
+            self._cache_service.get_cache(cache)
+        return cache[fen]
+
 
     @staticmethod
     def clear_render(gui):
@@ -114,6 +141,10 @@ class Explorer:
 
 
 class GUI:
+    def init_explorer(self):
+        self.e_manager = ExplorerCacheService(self.program_end_flag)
+        self.e_manager.start()
+
     def explorer(self):
         if not self.explorer:
             self.t_manager.submit(Thread(target=self.update_explorer_task))
@@ -122,17 +153,8 @@ class GUI:
         self.explorer = not self.explorer
 
     def update_explorer_task(self):
-        cache = self.explorer_cache
-        fen = self.board.fen()
-        try:
-            ex = cache[fen]
-            self.stdout("Updating from cache")
-        except KeyError:
-            ex = Explorer(self.board.fen())
-            cache[fen] = ex
-        # ex = Explorer(self.board.fen())
-        self._explorer = ex
-        ex.render(self)
+        self._explorer = Explorer(self.e_manager, self.board.fen())
+        self._explorer.render(self)
 
     def update_explorer(self):
         if self.explorer:
@@ -147,6 +169,57 @@ class GUI:
         Explorer.clear_render(self)
 
 
-if __name__ == "__main__":
-    ex = Explorer(chess.Board().fen())
-    print(len(ex.forwards))
+class ExplorerCacheService(Thread):
+    def __init__(self, endfunc):
+        super().__init__()
+        self._queue = Queue()
+        self._cache = {}
+        self._endfunc = endfunc
+        self.__init_cache()
+    
+    def get_cache(self, result, wait=True):
+        """
+        Sets result to the cache
+
+        :param result: the resulting empty dictionary
+        """
+        notifier = Event()
+        self._queue.put((lambda: result.update(self._cache), notifier))
+        if wait:
+            notifier.wait()
+
+    def update_cache(self, fen, wait=False):
+        notifier = Event()
+        self._queue.put((lambda: self.__update_cache({fen: Explorer.get_continuations_internet(fen)}), notifier))
+        if wait:
+            notifier.wait()
+
+    def end(self):
+        self._endfunc = lambda: True
+        self._queue.put((lambda: None, Event()))
+
+    def __init_cache(self):
+        try:
+            with open(pwd / "explorer_cache.json", 'r') as fin:
+                self._cache = json.load(fin)
+        except Exception:
+            self._cache = {}
+
+    def __update_cache(self, moves):
+        """
+        Saves suggested moves json to cache
+        
+        This function is not thread safe and should use cache_lock mutex.
+    
+        :param moves: the suggested moves attribute of the result json
+        """
+        new_cache = {**self._cache, **moves}
+        with open(pwd / "explorer_cache.json", 'w+') as fout:
+            print(json.dumps(new_cache), file=fout)
+        self._cache = new_cache
+
+    def run(self):
+        while not self._endfunc():
+            task, notifier = self._queue.get()
+            task()
+            notifier.set()
