@@ -81,30 +81,6 @@ class Explorer:
         continuations = self.get_continuations(fen)
         self.forwards = [Continuation(c) for c in continuations]
 
-    @staticmethod
-    def get_continuations_internet(fen):
-        """
-        Gets the continuations from the fen in json form
-
-        :param fen: the fen to search in chess.com's database
-        :return: list of jsons consisting of
-        {
-            "sanMove": SAN,
-            "whiteWon": games white has won,
-            "blackWon": games black has won,
-            "draw": drawn games,
-            "totalGames": total games in this variation
-        }
-        """
-        try:
-            r = requests.post(
-                "https://www.chess.com/callback/explorer/move",
-                json={"gameSource": "master", "nextFen": fen},
-            )
-            return r.json()["suggestedMoves"]
-        except BaseException:
-            return []
-
     def get_continuations(self, fen):
         cache = dict()
         self._cache_service.get_cache(cache)
@@ -116,25 +92,18 @@ class Explorer:
             self._cache_service.get_cache(cache)
         return cache[fen]
 
-
     @staticmethod
     def clear_render(gui):
         gfx.filled_polygon(gui.screen, Explorer.panel, (21, 21, 21))
 
     def render(self, gui):
-        # gui.action_execute.append(lambda: self.clear_render(gui))
         with gui.display_lock:
-        # if 0:
             self.clear_render(gui)
             sx, sy = Explorer.panel[0]
-            # buffer = [lambda: (c.render(gui, (sx, sy + i * 20), print(c)))
-            #           for i, c in enumerate(self.forwards)]
             for i, c in enumerate(self.forwards):
                 c.render(gui, (sx, sy + i * 20))
         if 1:
             gui.d_manager.submit(gui.refresh)
-            # gui.refresh()
-            # gui.action_queue.extend(buffer)
 
     def __repr__(self):
         return repr(self.forwards)
@@ -143,7 +112,6 @@ class Explorer:
 class GUI:
     def init_explorer(self):
         self.e_manager = ExplorerCacheService(self.program_end_flag)
-        self.e_manager.start()
 
     def explorer(self):
         if not self.explorer:
@@ -176,6 +144,8 @@ class ExplorerCacheService(Thread):
         self._cache = {}
         self._endfunc = endfunc
         self.__init_cache()
+        self.daemon = True
+        self.start()
     
     def get_cache(self, result, wait=True):
         """
@@ -190,7 +160,7 @@ class ExplorerCacheService(Thread):
 
     def update_cache(self, fen, wait=False):
         notifier = Event()
-        self._queue.put((lambda: self.__update_cache({fen: Explorer.get_continuations_internet(fen)}), notifier))
+        self._queue.put((lambda: self.__update_cache({fen: self.__get_continuations_internet(fen)}), notifier))
         if wait:
             notifier.wait()
 
@@ -204,6 +174,30 @@ class ExplorerCacheService(Thread):
                 self._cache = json.load(fin)
         except Exception:
             self._cache = {}
+
+    @staticmethod
+    def __get_continuations_internet(fen):
+        """
+        Gets the continuations from the fen in json form
+
+        :param fen: the fen to search in chess.com's database
+        :return: list of jsons consisting of
+        {
+            "sanMove": SAN,
+            "whiteWon": games white has won,
+            "blackWon": games black has won,
+            "draw": drawn games,
+            "totalGames": total games in this variation
+        }
+        """
+        try:
+            r = requests.post(
+                "https://www.chess.com/callback/explorer/move",
+                json={"gameSource": "master", "nextFen": fen},
+            )
+            return r.json()["suggestedMoves"]
+        except BaseException:
+            return []
 
     def __update_cache(self, moves):
         """

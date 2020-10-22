@@ -82,6 +82,7 @@ class GUI(lib.GUI):
         }
 
         # Initialize internal variables
+        self.create_thread_manager()
         self.init_explorer()
         self.SQUARE_SIZE = 68
         self.debug = "--debug" in sys.argv
@@ -103,7 +104,6 @@ class GUI(lib.GUI):
         self.explorer_fen = self.board.fen()
         self.explorer_cache = dict()
         self.engine_path = engine_path
-        self.create_thread_manager()
         self.create_fps_monitor()
         self.action_queue = []
         self.action_execute = []

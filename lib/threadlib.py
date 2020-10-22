@@ -20,6 +20,7 @@ class GCService(Thread):
         Thread.__init__(self, *args, **kwargs)
         self._endfunc = endfunc
         self.threads = []
+        self.start()
 
     @property
     def is_exiting(self):
@@ -42,6 +43,9 @@ class GCService(Thread):
 
 
 class DelayedExecution(Thread):
+    """
+    Actor to execute function after a certain amount of time.
+    """
     def __init__(self, delay, endfunc, *args, **kwargs):
         Thread.__init__(self, *args, **kwargs)
         self.queue = Queue()
