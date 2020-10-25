@@ -38,7 +38,6 @@ Keybindings:
 | ``n``      | Next game        |
 | ``b``      | Previous game    |
 | ``e``      | Toggle engine    |
-| ``ctrl+e`` | Configure engine |
 | ``o``      | Load a pgn       |
 | ``x``      | Toggle explorer  |
 | ``q``      | Quit application |

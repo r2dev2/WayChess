@@ -62,7 +62,6 @@ class GUI:
             self.create_ui_comment_edit()
             self.comment_edit_box.hide()
             self.set_ui_comment()
-
             GUI.has_made_ui = True
 
     def display_size_refresh(self):

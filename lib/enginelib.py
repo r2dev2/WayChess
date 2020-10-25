@@ -4,8 +4,6 @@ import json
 import multiprocessing as mp
 import threading
 import time
-import webbrowser
-from pathlib import Path
 
 import chess
 import chess.engine
@@ -226,28 +224,11 @@ class GUIAnalysis(AnalysisDisplay):
         self.gui.refresh()
 
 
-def get_config(default_options={}):
-    try:
-        with open(Path.home() / ".waychess" / "engineoptions.json", 'r') as fin:
-            return {
-                k: v for k, v in json.loads(fin.read()).items()
-                if k.lower() not in {"ponder", "multipv", "uci_chess960"}
-            }
-    except FileNotFoundError:
-        with open(Path.home() / ".waychess" / "engineoptions.json", 'w+') as fout:
-            print(json.dumps(default_options, indent=4), file=fout, flush=True)
-        return dict()
-
-
 class GUI:
     engine_panel = [(35, 590), (515, 590), (515, 755), (35, 755)]
 
     def clear_analysis(self):
         self.stdout("cleared")
-
-    @staticmethod
-    def configure_engine_options():
-        webbrowser.open(str(Path.home() / ".waychess" / "engineoptions.json"))
 
     def set_analysis(self):
         self.mm = False
