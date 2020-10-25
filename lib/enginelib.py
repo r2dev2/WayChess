@@ -1,9 +1,8 @@
-import io
-import pickle
 import json
-import multiprocessing as mp
 import threading
 import time
+import webbrowser
+from pathlib import Path
 
 import chess
 import chess.engine
@@ -70,106 +69,8 @@ def eval_to_str(ev):
         print("Failed due to", repr(e))
         raise e
 
-class AnalysisProcessor:
-    def __init__(self, engine_path):
-        self._analysis_setup_queue = mp.Queue()
-        self._analysis_queue = mp.Queue()
-        self._start_analysing = mp.Event()
-        self._end_all = mp.Event()
-        self._engine_path = str(engine_path)
-        self._p = None
 
-    def set_up_analysis(self, fen, options):
-        print("SETTTING UP ANALYSIS")
-        self._analysis_setup_queue.put((fen, options))
-        self._start_analysing.set()
-
-    def stop_analysis(self):
-        self._start_analysing.clear()
-
-    def get_analysis(self):
-        info, fen = self._analysis_queue.get()
-        return info, chess.Board(fen)
-
-    def terminate(self):
-        # self.stop_analysis()
-        self._end_all.set()
-
-    @staticmethod
-    def task(analysis_setup_queue, analysis_queue, start_analysing, engine_path, end_all):
-        engine = chess.engine.SimpleEngine.popen_uci(engine_path)
-        fen, options = None, None
-        doingstuff = True
-        engine.configure(get_config({
-            k: v.default for k, v in engine.options.items()
-        }))
-
-        while 1:
-            if end_all.is_set():
-                engine.quit()
-                return
-            start_analysing.wait()
-            while analysis_setup_queue.qsize():
-                fen, options = analysis_setup_queue.get()
-            if fen is not None and options is not None:
-                with engine.analysis(chess.Board(fen), **options) as analysis:
-                    for info in analysis:
-                        analysis_queue.put((info, fen))
-                        if (end_all.is_set()
-                                or analysis_setup_queue.qsize()
-                                or not start_analysing.is_set()):
-                            break
-
-    def start(self):
-        self._p = mp.Process(target=self.task, args=(
-            self._analysis_setup_queue,
-            self._analysis_queue,
-            self._start_analysing,
-            self._engine_path,
-            self._end_all))
-        self._p.start()
-
-
-class AnalysisProcessorWork(mp.Process):
-    def __init__(self, engine_path):
-        super().__init__()
-        self._analysis_setup_queue = mp.Queue()
-        self._analysis_queue = mp.Queue()
-        self._start_analysing = mp.Event()
-        self._engine_path = str(engine_path)
-
-    def set_up_analysis(self, fen, options):
-        self._analysis_setup_queue.put((fen, options))
-        self._start_analysing.set()
-
-    def stop_analysis(self):
-        self._start_analysing.clear()
-
-    def get_analysis(self):
-        info, fen = self._analysis_queue.get()
-        return info, chess.Board(fen)
-
-    def run(self):
-        engine = chess.engine.SimpleEngine.popen_uci(self._engine_path)
-        fen, options = None, None
-        doingstuff = True
-        engine.configure(get_config({
-            k: v.default for k, v in engine.options.items()
-        }))
-
-        while 1:
-            self._start_analysing.wait()
-            if self._analysis_setup_queue.qsize():
-                fen, options = self._analysis_setup_queue.get()
-            if fen is not None and options is not None:
-                with engine.analysis(chess.Board(fen), **options) as analysis:
-                    for info in analysis:
-                        self._analysis_queue.put((info, fen))
-                        if not self._start_analysing.is_set():
-                            break
-
-
-def analysis_f(engine, display, board=chess.Board(), end=lambda: False, options={"multipv": 3}):
+def analysis(engine, display, board=chess.Board(), end=lambda: False, options={"multipv": 3}):
     """
     Syncronous analysis for use in a threading.Thread
 
@@ -224,21 +125,36 @@ class GUIAnalysis(AnalysisDisplay):
         self.gui.refresh()
 
 
+def get_config(default_options={}):
+    try:
+        with open(Path.home() / ".waychess" / "engineoptions.json", 'r') as fin:
+            return {
+                k: v for k, v in json.loads(fin.read()).items()
+                if k.lower() not in {"ponder", "multipv", "uci_chess960"}
+            }
+    except FileNotFoundError:
+        with open(Path.home() / ".waychess" / "engineoptions.json", 'w+') as fout:
+            print(json.dumps(default_options, indent=4), file=fout, flush=True)
+        return dict()
+
+
 class GUI:
     engine_panel = [(35, 590), (515, 590), (515, 755), (35, 755)]
 
     def clear_analysis(self):
         self.stdout("cleared")
 
+    @staticmethod
+    def configure_engine_options():
+        webbrowser.open(str(Path.home() / ".waychess" / "engineoptions.json"))
+
     def set_analysis(self):
-        self.mm = False
         self.stdout("Set engine task")
         beg = time.time()
-        if not self.mm and not hasattr(self, "engine"):
+        if not hasattr(self, "engine"):
             self.stdout("Opening engine", self.engine_path)
             try:
                 self.engine = chess.engine.SimpleEngine.popen_uci(self.engine_path)
-                self.a_service = self.engine
             except Exception as e:
                 self.stdout(self.engine_path)
                 self.stdout("Failed due to", e)
@@ -247,11 +163,6 @@ class GUI:
             self.engine.configure(get_config({
                 k: v.default for k, v in self.engine.options.items()
             }))
-        if self.mm and not hasattr(self, "a_service"):
-            self.a_service = AnalysisProcessor(self.engine_path)
-            self.a_service.start()
-        if self.mm:
-            self.a_service.set_up_analysis(self.board.fen(), {"multipv": 3})
         self.is_analysing = True
         self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
@@ -260,31 +171,20 @@ class GUI:
             nonlocal self
             return not self.is_analysing
 
-        def run_analysis():
-            nonlocal self, get_end
-            while not get_end():
-                self.analysis_display.add(*self.a_service.get_analysis())
-            self.a_service.stop_analysis()
-
-        
-        if self.mm:
-            self.t_manager.submit(threading.Thread(target=run_analysis))
-
-        if not self.mm:
-            self.t_manager.submit(
-                threading.Thread(
-                    target=analysis_f,
-                    args=(
-                        self.engine, 
-                        self.analysis_display, 
-                        self.board, 
-                        get_end, {
-                            "multipv": 3,
-                        }
-                    ),
-                    daemon=True,
-                )
+        self.t_manager.submit(
+            threading.Thread(
+                target=analysis,
+                args=(
+                    self.engine, 
+                    self.analysis_display, 
+                    self.board, 
+                    get_end, {
+                        "multipv": 3,
+                    }
+                ),
+                daemon=True,
             )
+        )
         self.stdout("set analysis callback started in", time.time() - beg, "seconds")
 
     def stop_analysis_task(self):
