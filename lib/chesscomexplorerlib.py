@@ -102,8 +102,7 @@ class Explorer:
             sx, sy = Explorer.panel[0]
             for i, c in enumerate(self.forwards):
                 c.render(gui, (sx, sy + i * 20))
-        if 1:
-            gui.d_manager.submit(gui.refresh)
+        gui.d_manager.submit(gui.refresh)
 
     def __repr__(self):
         return repr(self.forwards)
@@ -207,13 +206,17 @@ class ExplorerCacheService(Thread):
     
         :param moves: the suggested moves attribute of the result json
         """
-        new_cache = {**self._cache, **moves}
-        with open(pwd / "explorer_cache.json", 'w+') as fout:
-            print(json.dumps(new_cache), file=fout)
-        self._cache = new_cache
+        if moves:
+            new_cache = {**self._cache, **moves}
+            with open(pwd / "explorer_cache.json", 'w+') as fout:
+                print(json.dumps(new_cache), file=fout)
+            self._cache = new_cache
 
     def run(self):
         while not self._endfunc():
             task, notifier = self._queue.get()
-            task()
+            try:
+                task()
+            except BaseException:
+                pass
             notifier.set()
