@@ -82,8 +82,6 @@ class GUI(lib.GUI):
         }
 
         # Initialize internal variables
-        self.create_thread_manager()
-        self.init_explorer()
         self.SQUARE_SIZE = 68
         self.debug = "--debug" in sys.argv
         self.piece_at = dict()
@@ -104,6 +102,7 @@ class GUI(lib.GUI):
         self.explorer_fen = self.board.fen()
         self.explorer_cache = dict()
         self.engine_path = engine_path
+        self.create_thread_manager()
         self.create_fps_monitor()
         self.action_queue = []
         self.action_execute = []
@@ -308,10 +307,13 @@ class GUI(lib.GUI):
             if piece is not None:
                 self.background()
                 self.draw_square(*self.beg_click)
-                self.screen.blit(
-                    self.piece_to_img[piece],
-                    (coords[0] - SQUARE_SIZE // 2, coords[1] - SQUARE_SIZE // 2,),
-                )
+
+                piece_coords = (coords[0] - SQUARE_SIZE // 2, coords[1] - SQUARE_SIZE // 2,)
+                if all(-68 <= val <= 68*8 for val in coords):
+                    self.screen.blit(
+                        self.piece_to_img[piece],
+                        piece_coords,
+                    )
 
         elif self.button_pressed[3]:
             self.background()
@@ -368,17 +370,18 @@ class GUI(lib.GUI):
             dispatch_table = self.key_pressed_dispatch
         except AttributeError:
             self.key_pressed_dispatch = {
-                276: self.move_back,  #       left arrow key
-                275: self.move_forward,  #    right arrow key
-                102: self.flip,  #            f
-                115: self.save_pgn,  #        s
-                -110: self.create_game,  #    ctrl n
-                110: self.next_game,  #       n
-                98: self.previous_game,  #    b
-                101: self.engine_callback,  # e
-                111: self.load_pgn,  #        o
-                120: self.explorer,  #        x
-                113: self.exit,  #            q
+                276: self.move_back,  #                left arrow key
+                275: self.move_forward,  #             right arrow key
+                102: self.flip,  #                     f
+                115: self.save_pgn,  #                 s
+                -110: self.create_game,  #             ctrl n
+                110: self.next_game,  #                n
+                98: self.previous_game,  #             b
+                101: self.engine_callback,  #          e
+                -101: self.configure_engine_options, # ctrl e
+                111: self.load_pgn,  #                 o
+                120: self.explorer,  #                 x
+                113: self.exit,  #                     q
             }
             dispatch_table = self.key_pressed_dispatch
 
@@ -404,13 +407,9 @@ class GUI(lib.GUI):
         self.is_exiting = True
         self.stop_analysis()
         try:
-            if self.mm:
-                self.a_service.terminate()
-            else:
-                self.engine.quit()
-        except BaseException as e:
-            print(e)
-        self.e_manager.end()
+            self.engine.quit()
+        except BaseException:
+            pass
         sys.exit()
 
     def click(self, event):

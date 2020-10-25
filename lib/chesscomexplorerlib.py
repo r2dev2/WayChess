@@ -1,13 +1,9 @@
-import json
-from pathlib import Path
-from queue import Queue
-from threading import Event, Lock, Thread
+from threading import Thread
 
 import chess
 import pygame.gfxdraw as gfx
 import requests
 
-pwd = Path.home() / ".waychess"
 
 class Continuation:
     def __init__(self, c_json):
@@ -62,120 +58,16 @@ class Continuation:
 class Explorer:
     """
     A class to represent the results from chess.com's opening explorer
-
-    Panel of following rectangle:
-    
-    (825, 75)-----(1180, 75)
-        |              |    
-        |              |    
-        |              |
-        |              |
-        |              |
-        |              |
-    (825, 610)----(1180, 610)
     """
+
     panel = [(825, 75), (1180, 75), (1180, 610), (825, 610)]
 
-    def __init__(self, cache_service, fen=chess.Board().fen()):
-        self._cache_service = cache_service
+    def __init__(self, fen=chess.Board().fen()):
         continuations = self.get_continuations(fen)
         self.forwards = [Continuation(c) for c in continuations]
 
-    def get_continuations(self, fen):
-        cache = dict()
-        self._cache_service.get_cache(cache)
-        if fen in cache:
-            self._cache_service.update_cache(fen)
-            return cache[fen]
-        else:
-            self._cache_service.update_cache(fen, True)
-            self._cache_service.get_cache(cache)
-        return cache[fen]
-
     @staticmethod
-    def clear_render(gui):
-        gfx.filled_polygon(gui.screen, Explorer.panel, (21, 21, 21))
-
-    def render(self, gui):
-        with gui.display_lock:
-            self.clear_render(gui)
-            sx, sy = Explorer.panel[0]
-            for i, c in enumerate(self.forwards):
-                c.render(gui, (sx, sy + i * 20))
-        gui.d_manager.submit(gui.refresh)
-
-    def __repr__(self):
-        return repr(self.forwards)
-
-
-class GUI:
-    def init_explorer(self):
-        self.e_manager = ExplorerCacheService(self.program_end_flag)
-
-    def explorer(self):
-        if not self.explorer:
-            self.t_manager.submit(Thread(target=self.update_explorer_task))
-        else:
-            self.clear_explorer()
-        self.explorer = not self.explorer
-
-    def update_explorer_task(self):
-        self._explorer = Explorer(self.e_manager, self.board.fen())
-        self._explorer.render(self)
-
-    def update_explorer(self):
-        if self.explorer:
-            if self.board.fen() != self.explorer_fen or not hasattr(self, "_explorer"):
-                self.t_manager.submit(Thread(target=self.update_explorer_task))
-            else:
-                ex = self._explorer
-                ex.render(self)
-            self.explorer_fen = self.board.fen()
-
-    def clear_explorer(self):
-        Explorer.clear_render(self)
-
-
-class ExplorerCacheService(Thread):
-    def __init__(self, endfunc):
-        super().__init__()
-        self._queue = Queue()
-        self._cache = {}
-        self._endfunc = endfunc
-        self.__init_cache()
-        self.daemon = True
-        self.start()
-    
-    def get_cache(self, result, wait=True):
-        """
-        Sets result to the cache
-
-        :param result: the resulting empty dictionary
-        """
-        notifier = Event()
-        self._queue.put((lambda: result.update(self._cache), notifier))
-        if wait:
-            notifier.wait()
-
-    def update_cache(self, fen, wait=False):
-        notifier = Event()
-        self._queue.put((lambda: self.__update_cache({fen: self.__get_continuations_internet(fen)}), notifier))
-        if wait:
-            notifier.wait()
-
-    def end(self):
-        self._endfunc = lambda: True
-        self._queue.put((lambda: None, Event()))
-
-    def __init_cache(self):
-        try:
-            with open(pwd / "explorer_cache.json", 'r') as fin:
-                self._cache = json.load(fin)
-        except Exception:
-            self._cache = {}
-
-    @staticmethod
-    def __get_continuations_internet(fen):
+    def get_continuations(fen):
         """
         Gets the continuations from the fen in json form
 
@@ -198,25 +90,63 @@ class ExplorerCacheService(Thread):
         except BaseException:
             return []
 
-    def __update_cache(self, moves):
-        """
-        Saves suggested moves json to cache
-        
-        This function is not thread safe and should use cache_lock mutex.
-    
-        :param moves: the suggested moves attribute of the result json
-        """
-        if 0 and moves:
-            new_cache = {**self._cache, **moves}
-            with open(pwd / "explorer_cache.json", 'w+') as fout:
-                print(json.dumps(new_cache), file=fout)
-            self._cache = new_cache
+    @staticmethod
+    def clear_render(gui):
+        gfx.filled_polygon(gui.screen, Explorer.panel, (21, 21, 21))
 
-    def run(self):
-        while not self._endfunc():
-            task, notifier = self._queue.get()
-            try:
-                task()
-            except BaseException:
-                pass
-            notifier.set()
+    def render(self, gui):
+        # gui.action_execute.append(lambda: self.clear_render(gui))
+        with gui.display_lock:
+        # if 0:
+            self.clear_render(gui)
+            sx, sy = Explorer.panel[0]
+            # buffer = [lambda: (c.render(gui, (sx, sy + i * 20), print(c)))
+            #           for i, c in enumerate(self.forwards)]
+            for i, c in enumerate(self.forwards):
+                c.render(gui, (sx, sy + i * 20))
+        if 1:
+            gui.d_manager.submit(gui.refresh)
+            # gui.refresh()
+            # gui.action_queue.extend(buffer)
+
+    def __repr__(self):
+        return repr(self.forwards)
+
+
+class GUI:
+    def explorer(self):
+        if not self.explorer:
+            self.t_manager.submit(Thread(target=self.update_explorer_task))
+        else:
+            self.clear_explorer()
+        self.explorer = not self.explorer
+
+    def update_explorer_task(self):
+        cache = self.explorer_cache
+        fen = self.board.fen()
+        try:
+            ex = cache[fen]
+            self.stdout("Updating from cache")
+        except KeyError:
+            ex = Explorer(self.board.fen())
+            cache[fen] = ex
+        # ex = Explorer(self.board.fen())
+        self._explorer = ex
+        ex.render(self)
+
+    def update_explorer(self):
+        if self.explorer:
+            if self.board.fen() != self.explorer_fen or not hasattr(self, "_explorer"):
+                self.t_manager.submit(Thread(target=self.update_explorer_task))
+            else:
+                ex = self._explorer
+                ex.render(self)
+            self.explorer_fen = self.board.fen()
+
+    def clear_explorer(self):
+        Explorer.clear_render(self)
+
+
+if __name__ == "__main__":
+    ex = Explorer(chess.Board().fen())
+    print(len(ex.forwards))
