@@ -206,7 +206,7 @@ class ExplorerCacheService(Thread):
     
         :param moves: the suggested moves attribute of the result json
         """
-        if moves:
+        if 0 and moves:
             new_cache = {**self._cache, **moves}
             with open(pwd / "explorer_cache.json", 'w+') as fout:
                 print(json.dumps(new_cache), file=fout)

@@ -408,9 +408,12 @@ class GUI(lib.GUI):
         self.is_exiting = True
         self.stop_analysis()
         try:
-            self.engine.quit()
-        except BaseException:
-            pass
+            if self.mm:
+                self.a_service.terminate()
+            else:
+                self.engine.quit()
+        except BaseException as e:
+            print(e)
         self.e_manager.end()
         sys.exit()
 
