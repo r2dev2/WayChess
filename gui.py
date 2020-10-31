@@ -171,14 +171,13 @@ class GUI(lib.GUI):
         self._display_size = value
         self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
         self.background()
-
     
     def stdout(self, *args, **kwargs):
         if self.debug:
             print(*args, **kwargs)
 
     def stderr(self, *args, **kwargs):
-        return self.stdout(*args, **kwargs)
+        return self.stdout(*args, **kwargs, file=sys.stderr)
 
     def print_tb(self, e):
         """
@@ -271,11 +270,7 @@ class GUI(lib.GUI):
             self.stdout("BUTTON 1 RELEASE", self.engine_box_lock.locked())
             self.set_board()
             if self.engine_box_lock.locked():
-                for i in range(10):
-                    print("GOING TO RELEASE RELEASE RELEASE")
                 self.engine_box_lock.release()
-                for i in range(10):
-                    print("RELEASE RELEASE RELEASE")
 
         if button == 3:
             self.draw_arrow(self.beg_click, p_coords)

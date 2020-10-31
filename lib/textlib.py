@@ -5,9 +5,14 @@ import pygame.gfxdraw as gfx
 
 
 def grouper_it(n, iterable):
-    # https://stackoverflow.com/questions/8991506/iterate-an-iterator-by-chunks-of-n-in-python
+    """
+    Groups iterable by chunks of size n.
+
+    Credit:
+    https://stackoverflow.com/questions/8991506/iterate-an-iterator-by-chunks-of-n-in-python
+    """
     it = iter(iterable)
-    while True:
+    while 1:
         chunk_it = itertools.islice(it, n)
         try:
             first_el = next(chunk_it)
@@ -54,17 +59,17 @@ class GUI:
 
             # Add a * if there are multiple variations
             if any_l(len_l(n.variations) > 1 for n in nodes):
-                s = "*" + s
+                s = '*' + s
 
 
-            # Add a space if the move is the current move
+            # Add a tab if the move is the current move
             if counter - 1 == int_l(emphasis - 0.5):
-                s = "\t" + s
+                s = '\t' + s
                 tabbed = True
 
             moves.append(s)
         if not tabbed:
-            moves[-1] = "\t" + moves[-1]
+            moves[-1] = '\t' + moves[-1]
         return moves
 
     def render_history(self):

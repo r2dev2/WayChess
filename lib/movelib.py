@@ -42,7 +42,9 @@ class GUI:
             board = self.board.copy()
             try:
                 move = board.push_uci(str(move))
-                if self.key_pressed[306]:
+                if self.node.has_variation(move):
+                    self.node = self.node.variation(move)
+                elif self.key_pressed[306]:
                     self.node = self.node.add_main_variation(move)
                 else:
                     self.node = self.node.add_variation(move)
