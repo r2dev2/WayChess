@@ -84,6 +84,7 @@ class GUI(lib.GUI):
         # Initialize internal variables
         self.SQUARE_SIZE = 68
         self.debug = "--debug" in sys.argv
+        self.variation_path = []
         self.piece_at = dict()
         self.database = Database(pgn_path)
         self.game = 0
@@ -142,6 +143,7 @@ class GUI(lib.GUI):
     def game(self, value):
         self._game = value
         self.move = 0
+        self.variation_path = [0]
 
     @property
     def node(self):
@@ -149,9 +151,25 @@ class GUI(lib.GUI):
 
     @node.setter
     def node(self, value):
+        try:
+            try:
+                position = self._node.variations.index(value)
+                try:
+                    self.variation_path[int(self.move*2)] = position
+                except IndexError:
+                    self.variation_path.append(position)
+            # Will be raised if value is not a future variation
+            except ValueError:
+                try:
+                    self.variation_path[int(self.move*2)-1] = 0
+                except IndexError:
+                    pass
+        # Will be raised if not hasattr(self, "_node")
+        except AttributeError:
+            self.variation_path = [0]
         self._node = value
         self.changed_hist = True
-        self.stdout("changed node")
+        self.stdout("changed game node")
         self.set_ui_comment(value.comment)
         try:
             if self.is_analysing:
@@ -159,6 +177,7 @@ class GUI(lib.GUI):
                 self.set_analysis()
         except AttributeError:
             pass
+        self.stdout("[TEXT] new variation path: ", self.variation_path)
 
     @property
     def display_size(self):

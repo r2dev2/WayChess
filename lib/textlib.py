@@ -25,28 +25,48 @@ class GUI:
     moves_panel = [(580, 65), (750, 65), (750, 555), (580, 555)]
 
     @staticmethod
-    def __board_node_generator(beg):
+    def __board_node_generator(beg, variation_path):
         """
         Returns the nodes of the game's main variation.
 
         :param beg: the beginning node
+        :param variation_path: the path of which variations to fork on
+                               ex: [0, 1, 0] means take variation
+                                at index 1 on the second move
         :return: the generator with the nodes of the main variation
         """
-        while beg.variations:
-            yield beg
-            beg = beg.variations[0]
+        vp_iterator = iter(variation_path)
+        try:
+            while beg.variations:
+                yield beg
+                beg = beg.variations[next(vp_iterator)]
+        # Be safe against potentially invalid length of variation_path
+        except StopIteration:
+            pass
         yield beg
 
     @staticmethod
-    def __get_move_text_history(game, emphasis):
+    def __get_move_text_history(game, emphasis, variation_path):
+        """
+        Returns a list with the san of each move.
+
+        :param game: the ``chess.pgn.Game`` of the game
+        :param emphasis: the move which is the current move
+        :param variation_path: the path of which variations to fork on
+        :return: the list with the san of each move
+                    moves with variations will have * in front
+                    the emphasis move will be marked with a front tab
+        """
         beg = game.variations[0]
         tabbed = False
         moves = []
-        time.time()
         # nodes will be tuple of either 2 nodes or 1 node
-        any_l, len_l, int_l = any, len, int
+        # it will be 2 nodes for a full move 
+        #   and 1 node for a half move
+        any_l, len_l, int_l = any, len, int # lookup time optimization
         for counter, nodes in enumerate(
-            map(tuple, grouper_it(2, GUI.__board_node_generator(beg))), 1
+            map(tuple, grouper_it(
+                2, GUI.__board_node_generator(beg, variation_path))), 1
         ):
 
             try:
@@ -100,7 +120,8 @@ class GUI:
 
         try:
             if moves is None:
-                moves = self.__get_move_text_history(game, self.move)
+                moves = self.__get_move_text_history(game, self.move,
+                                                     self.variation_path[1:])
         except IndexError:
             moves = []
         except Exception:

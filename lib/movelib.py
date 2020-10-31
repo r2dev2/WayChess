@@ -48,7 +48,6 @@ class GUI:
                     self.node = self.node.add_main_variation(move)
                 else:
                     self.node = self.node.add_variation(move)
-                # self.node = self.node.add_main_variation(move)
                 self.move += 0.5
             # Raises ValueError if the move is illegal
             except ValueError:
