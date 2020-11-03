@@ -3,6 +3,7 @@ import chess.pgn
 
 from .context import lib
 
+get_variation_menu_coords = lib.textlib.get_variation_menu_coords
 grouper_it = lib.textlib.grouper_it
 GUI = lib.textlib.GUI
 
@@ -71,4 +72,12 @@ def test_move_text_history():
         "5. d4 exd4",
         "6. Qxd4 Qxd4",
         "7. Nxd4"
+    ]
+
+
+def test_get_variation_menu_coords():
+    assert get_variation_menu_coords(20, 40, 20, 10, 3) == [
+        [(20, 20), (40, 20), (40, 30), (20, 30)],
+        [(20, 30), (40, 30), (40, 40), (20, 40)],
+        [(20, 40), (40, 40), (40, 50), (20, 50)]
     ]

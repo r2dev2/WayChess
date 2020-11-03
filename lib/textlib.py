@@ -1,4 +1,5 @@
 import itertools
+import sys
 import time
 
 import pygame.gfxdraw as gfx
@@ -21,8 +22,135 @@ def grouper_it(n, iterable):
         yield itertools.chain((first_el,), chunk_it)
 
 
+def get_variation_menu_coords(left, right, initial_y, delta_y, variations):
+    """
+    Returns a list of lists of the menu coordinates.
+
+    :param left: the left x coordinate of the menu
+    :param right: the right x coordinate of the menu
+    :param initial_y: the top y value of the menu
+    :param delta_y: the y size of each menu block
+    :variations: the number of variations
+    :return: a list of rectangle lists
+    """
+    coords = []
+    for i in range(variations):
+        top_y = initial_y + i * delta_y
+        bottom_y = top_y + delta_y
+        coords.append([
+            (left, top_y), (right, top_y),
+            (right, bottom_y), (left, bottom_y)
+        ])
+    return coords
+
+
 class GUI:
     moves_panel = [(580, 65), (750, 65), (750, 555), (580, 555)]
+
+    def draw_variation_menu(self):
+        try:
+            coords = get_variation_menu_coords(GUI.moves_panel[0][0],
+                                               GUI.moves_panel[1][0],
+                                               self._initial_variation_y,
+                                               30, len(self.node.variations))
+            for c in coords:
+                gfx.filled_polygon(self.screen, c, (0, 0, 0))
+
+        except AttributeError as e:
+            self.stderr(e)
+    
+    def render_history(self):
+        """
+        Renders the history with autoscroll.
+
+        To implement:
+          * Move comments
+          * Move marks eg. ! ?
+        """
+        with self.display_lock:
+            if self.changed_hist:
+                self.move_hist = self.render_history_task()
+                self.changed_hist = False
+            else:
+                self.render_history_task(self.move_hist)
+
+    def render_history_task(self, moves=None):
+        """
+        Renders the history with autoscroll.
+
+        To implement:
+          * Move comments
+          * Move marks eg. ! ?
+        """
+        gfx.filled_polygon(self.screen, GUI.moves_panel, (21, 21, 21))
+        game = self.node.game()
+
+        try:
+            if moves is None:
+                moves = self.__get_move_text_history(game, self.move,
+                                                     self.variation_path[1:])
+        except IndexError:
+            moves = []
+        except Exception:
+            self.exit()
+
+        y = 80
+        move_amount = len(moves)
+        if move_amount < 15:
+            moves.extend([" " * 20] * (15 - move_amount))
+        elif 8 <= int(self.move) < move_amount - 8:
+            b = int(self.move - 0.5) - 8
+            b = 0 if b < 0 else b
+            moves = moves[b : int(self.move - 0.5) + 8]
+        elif int(self.move) < 8:
+            moves = moves[:15]
+
+        moves = moves[-15:]
+        for move in moves:
+            # Highlight text if it is of the current move
+            if move.startswith("\t"):
+                b_left = GUI.moves_panel[0][0]
+                b_right = GUI.moves_panel[1][0]
+
+                # dy of -5 is needed to align the highlight
+                dy = -5
+                rect = [
+                    (b_left, y + dy),
+                    (b_right, y + dy),
+                    (b_right, y + dy + 30),
+                    (b_left, y + dy + 30),
+                ]
+                gfx.filled_polygon(self.screen, rect, (0, 0, 0))
+                self._initial_variation_y = y + dy
+            self.render_text(
+                move.lstrip(),
+                (None, y),
+                True,
+                (0, 0, 0) if move.startswith("\t") else (21, 21, 21),
+            )
+            y += 30
+        if "--always-variation" in sys.argv:
+            self.draw_variation_menu()
+        return moves
+
+    def render_text(self, text, pos=(None, 20), small=False, background=(21, 21, 21)):
+        """Renders text, centered by default"""
+        SQUARE_SIZE = self.SQUARE_SIZE
+        left_boundary = SQUARE_SIZE * 9
+        if pos[0] is None:
+            right_boundary = 600
+            text_len = len(text)
+            left = left_boundary + (right_boundary - left_boundary - text_len) // 2
+            pos = (left, pos[1])
+        font = self.font_small if small else self.font
+        rendered = font.render(text, True, (255, 255, 255), background)
+        # brendered = font.render('G'*100, True, (21, 21, 21), (21, 21, 21))
+        # self.screen.blit(brendered, (left_boundary-5, pos[1]))
+        self.screen.blit(rendered, pos)
+
+    def render_raw_text(self, text, pos, font, color, background=(21, 21, 21)):
+        rendered = font.render(text, True, color, background)
+        self.screen.blit(rendered, pos)
 
     @staticmethod
     def __board_node_generator(beg, variation_path):
@@ -92,92 +220,3 @@ class GUI:
             moves[-1] = '\t' + moves[-1]
         return moves
 
-    def render_history(self):
-        """
-        Renders the history with autoscroll.
-
-        To implement:
-          * Move comments
-          * Move marks eg. ! ?
-        """
-        with self.display_lock:
-            if self.changed_hist:
-                self.move_hist = self.render_history_task()
-                self.changed_hist = False
-            else:
-                self.render_history_task(self.move_hist)
-
-    def render_history_task(self, moves=None):
-        """
-        Renders the history with autoscroll.
-
-        To implement:
-          * Move comments
-          * Move marks eg. ! ?
-        """
-        gfx.filled_polygon(self.screen, GUI.moves_panel, (21, 21, 21))
-        game = self.node.game()
-
-        try:
-            if moves is None:
-                moves = self.__get_move_text_history(game, self.move,
-                                                     self.variation_path[1:])
-        except IndexError:
-            moves = []
-        except Exception:
-            self.exit()
-
-        y = 80
-        move_amount = len(moves)
-        if move_amount < 15:
-            moves.extend([" " * 20] * (15 - move_amount))
-        elif 8 <= int(self.move) < move_amount - 8:
-            b = int(self.move - 0.5) - 8
-            b = 0 if b < 0 else b
-            moves = moves[b : int(self.move - 0.5) + 8]
-        elif int(self.move) < 8:
-            moves = moves[:15]
-
-        moves = moves[-15:]
-        for move in moves:
-            # Highlight text if it is of the current move
-            if move.startswith("\t"):
-                b_left = GUI.moves_panel[0][0]
-                b_right = GUI.moves_panel[1][0]
-
-                # dy of -5 is needed to align the highlight
-                dy = -5
-                rect = [
-                    (b_left, y + dy),
-                    (b_right, y + dy),
-                    (b_right, y + dy + 30),
-                    (b_left, y + dy + 30),
-                ]
-                gfx.filled_polygon(self.screen, rect, (0, 0, 0))
-            self.render_text(
-                move.lstrip(),
-                (None, y),
-                True,
-                (0, 0, 0) if move.startswith("\t") else (21, 21, 21),
-            )
-            y += 30
-        return moves
-
-    def render_text(self, text, pos=(None, 20), small=False, background=(21, 21, 21)):
-        """Renders text, centered by default"""
-        SQUARE_SIZE = self.SQUARE_SIZE
-        left_boundary = SQUARE_SIZE * 9
-        if pos[0] is None:
-            right_boundary = 600
-            text_len = len(text)
-            left = left_boundary + (right_boundary - left_boundary - text_len) // 2
-            pos = (left, pos[1])
-        font = self.font_small if small else self.font
-        rendered = font.render(text, True, (255, 255, 255), background)
-        # brendered = font.render('G'*100, True, (21, 21, 21), (21, 21, 21))
-        # self.screen.blit(brendered, (left_boundary-5, pos[1]))
-        self.screen.blit(rendered, pos)
-
-    def render_raw_text(self, text, pos, font, color, background=(21, 21, 21)):
-        rendered = font.render(text, True, color, background)
-        self.screen.blit(rendered, pos)
