@@ -110,6 +110,8 @@ class GUI(lib.GUI):
         self.onui = False
         self.pwd = pwd
         self.engine_box_lock = Lock()
+        self.display_variation_menu = False
+        self.variation_menu_emphasis = None
 
         self.screen = pygame.display.set_mode(display_size, pygame.RESIZABLE)
         self.font = pygame.font.Font(pygame.font.match_font("calibri"), 32)
@@ -177,6 +179,7 @@ class GUI(lib.GUI):
                 self.set_analysis()
         except AttributeError:
             pass
+        self.display_variation_menu = False
         self.stdout("[TEXT] new variation path: ", self.variation_path)
 
     @property
@@ -240,13 +243,14 @@ class GUI(lib.GUI):
     def clear_variation(self):
         self.moves_popped = []
 
-    def left_click(self, coords):
+    def left_click(self, event):
         """
         Left click callback for the GUI.
 
-        :param coords: the processed coordinates of the click
+        :param event: the event
         :return: None
         """
+        p_coords = self.receive_coords(*event.pos)
         if self.is_promoting:
             self.stdout("Click while promoting")
             try:
@@ -267,6 +271,7 @@ class GUI(lib.GUI):
             self.is_promoting = False
             self.set_board()
 
+
     def release(self, event):
         """
         The mouse button release callback.
@@ -280,10 +285,11 @@ class GUI(lib.GUI):
         if event.button == 1:
             self.end_first = p_coords
             if self.beg_first == self.end_first:
-                self.left_click(self.beg_first)
+                self.left_click(event)
             else:
                 self.draw_move(self.beg_first, self.end_first)
             self.beg, self.end = None, None
+            self.textlib_process_mouse_click(event.pos)
 
         if button == 1:
             self.stdout("BUTTON 1 RELEASE", self.engine_box_lock.locked())
@@ -332,6 +338,8 @@ class GUI(lib.GUI):
         elif self.button_pressed[3]:
             self.background()
             self.draw_raw_arrow(self.beg_raw_click, coords)
+
+        self.textlib_process_mouse_over(event.pos)
 
     def create_game(self):
         """The callback for creating a game"""
