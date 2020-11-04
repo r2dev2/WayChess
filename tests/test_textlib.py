@@ -4,6 +4,7 @@ import chess.pgn
 from .context import lib
 
 get_variation_menu_coords = lib.textlib.get_variation_menu_coords
+shift_variation_menu = lib.textlib.shift_variation_menu
 get_variation_menu_item = lib.textlib.get_variation_menu_item
 grouper_it = lib.textlib.grouper_it
 GUI = lib.textlib.GUI
@@ -100,3 +101,17 @@ def test_get_variation_menu_item():
     for test in tests:
         assert get_variation_menu_item(menu_coords, *test[0]) == test[1]
 
+
+def test_shift_variation_menu():
+    old_menu_coords = [
+        [(20, 30), (40, 30), (40, 40), (20, 40)],
+        [(20, 40), (40, 40), (40, 50), (20, 50)],
+        [(20, 50), (40, 50), (40, 60), (20, 60)]
+    ]
+    new_menu_coords = [
+        [(20, 20), (40, 20), (40, 30), (20, 30)],
+        [(20, 30), (40, 30), (40, 40), (20, 40)],
+        [(20, 40), (40, 40), (40, 50), (20, 50)]
+    ]
+
+    assert shift_variation_menu(old_menu_coords, 10) == new_menu_coords
