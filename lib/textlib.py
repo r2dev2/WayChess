@@ -1,4 +1,5 @@
 import itertools
+import re
 import sys
 import time
 
@@ -114,10 +115,22 @@ class GUI:
         if self.node.variations[1:]:
             try:
                 coords = self.__get_var_menu_coords()
-                for i, c in enumerate(coords):
+                for i, v, c in zip(itertools.count(), self.node.variations, coords):
+                    try:
+                        text = re.search(r"\((.+)\.\.\.\)", repr(v)).group(1)
+                    except Exception:
+                        text = ""
                     color = (0, 0, 0) if i != self.variation_menu_emphasis else (42, 42, 42)
                     gfx.filled_polygon(self.screen, c, color)
-
+                    try:
+                        self.render_text(
+                            text,
+                            (None, c[0][1] + 5), # (None, y),
+                            True,
+                            color
+                        )
+                    except Exception as e:
+                        print(e)
             except AttributeError as e:
                 self.stderr(e)
     
