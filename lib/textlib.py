@@ -44,6 +44,24 @@ def get_variation_menu_coords(left, right, initial_y, delta_y, variations):
     return coords
 
 
+def get_variation_menu_item(coordlist, mouse_x, mouse_y):
+    """
+    Returns which menu item the mouse is in.
+
+    :param coordlist: the list of coordinate rectangles of the menu
+    :param mouse_x: the x coordinate of the mouse
+    :param mouse_y: the y coordinate of the mouse
+    :return: the index of the menu item or None
+    """
+    for i, coords in enumerate(coordlist):
+        min_x = min(c[0] for c in coords)
+        min_y = min(c[1] for c in coords)
+        max_x = max(c[0] for c in coords)
+        max_y = max(c[1] for c in coords)
+        if min_x <= mouse_x <= max_x and min_y <= mouse_y <= max_y:
+            return i
+
+
 class GUI:
     moves_panel = [(580, 65), (750, 65), (750, 555), (580, 555)]
 
