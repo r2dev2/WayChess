@@ -34,7 +34,7 @@ def get_variation_menu_coords(left, right, initial_y, delta_y, variations):
     :return: a list of rectangle lists
     """
     coords = []
-    for i in range(variations):
+    for i in range(min(14, variations)):
         top_y = initial_y + i * delta_y
         bottom_y = top_y + delta_y
         coords.append([
@@ -79,26 +79,47 @@ def get_variation_menu_item(coordlist, mouse_x, mouse_y):
 class GUI:
     moves_panel = [(580, 65), (750, 65), (750, 555), (580, 555)]
 
+    def textlib_process_mouse_over(self, coords):
+        """
+        Processes mouse input for textlib.
+
+        :param coords: the raw mouse coordinates
+        """
+        var_menu_coords = self.__get_var_menu_coords()
+        # Update the variation menu
+        if self.display_variation_menu:
+            self.variation_menu_emphasis = get_variation_menu_item(var_menu_coords, *coords)
+            self.draw_variation_menu()
+
+    def textlib_process_mouse_click(self, coords):
+        """
+        Processes mouse click input for textlib.
+
+        :param coords: the raw mouse coordinates
+        """
+        var_menu_coords = self.__get_var_menu_coords()
+        loc = get_variation_menu_item(var_menu_coords, *coords)
+        if self.display_variation_menu and loc is not None:
+            self.node = self.node.variations[loc]
+            self.move += .5
+        elif self.display_variation_menu:
+            self.display_variation_menu = False
+            self.render_history()
+        elif loc == 0:
+            self.display_variation_menu = True
+            self.variation_menu_emphasis = 0
+            self.draw_variation_menu()
+
     def draw_variation_menu(self):
-        try:
-            coords = None
-            amount_variations = len(self.node.variations)
-            count = itertools.count()
-            while next(count) < 20 and (coords is None or coords
-                    and coords[-1][-1][-1] > GUI.moves_panel[-1][-1]):
-                if coords:
-                    coords = shift_variation_menu(coords, 30)
-                else:
-                    coords = get_variation_menu_coords(GUI.moves_panel[0][0],
-                                                       GUI.moves_panel[1][0],
-                                                       self._initial_variation_y,
-                                                       30, amount_variations)
+        if self.node.variations[1:]:
+            try:
+                coords = self.__get_var_menu_coords()
+                for i, c in enumerate(coords):
+                    color = (0, 0, 0) if i != self.variation_menu_emphasis else (42, 42, 42)
+                    gfx.filled_polygon(self.screen, c, color)
 
-            for c in coords[: 14]:
-                gfx.filled_polygon(self.screen, c, (0, 0, 0))
-
-        except AttributeError as e:
-            self.stderr(e)
+            except AttributeError as e:
+                self.stderr(e)
     
     def render_history(self):
         """
@@ -170,7 +191,7 @@ class GUI:
                 (0, 0, 0) if move.startswith("\t") else (21, 21, 21),
             )
             y += 30
-        if "--always-variation" in sys.argv:
+        if "--always-variation" in sys.argv or self.display_variation_menu:
             self.draw_variation_menu()
         return moves
 
@@ -205,13 +226,13 @@ class GUI:
         :return: the generator with the nodes of the main variation
         """
         vp_iterator = iter(variation_path)
-        try:
-            while beg.variations:
-                yield beg
-                beg = beg.variations[next(vp_iterator)]
-        # Be safe against potentially invalid length of variation_path
-        except StopIteration:
-            pass
+        while beg.variations:
+            yield beg
+            try:
+                next_idx = next(vp_iterator)
+            except StopIteration:
+                next_idx = 0
+            beg = beg.variations[next_idx]
         yield beg
 
     @staticmethod
@@ -261,3 +282,21 @@ class GUI:
             moves[-1] = '\t' + moves[-1]
         return moves
 
+    def __get_var_menu_coords(self):
+        try:
+            coords = None
+            amount_variations = len(self.node.variations)
+            count = itertools.count()
+            while next(count) < 20 and (coords is None or coords
+                    and coords[-1][-1][-1] > GUI.moves_panel[-1][-1]):
+                if coords:
+                    coords = shift_variation_menu(coords, 30)
+                else:
+                    coords = get_variation_menu_coords(GUI.moves_panel[0][0],
+                                                       GUI.moves_panel[1][0],
+                                                       self._initial_variation_y,
+                                                       30, amount_variations)
+            return coords
+
+        except Exception as e:
+            self.stderr(e)
