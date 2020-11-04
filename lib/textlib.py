@@ -44,6 +44,20 @@ def get_variation_menu_coords(left, right, initial_y, delta_y, variations):
     return coords
 
 
+def shift_variation_menu(coordlist, delta):
+    """
+    Shifts up a variation menu list to not have it exceed the screen.
+
+    :param coordlist: the list of coordinate rectangles of the menu
+    :param delta: the y distance between the menu items
+    :return: None
+    """
+    coordcopy = coordlist[:]
+    for coords in coordcopy:
+        coords[:] = [(x, y - delta) for x, y in coords]
+    return coordcopy
+
+
 def get_variation_menu_item(coordlist, mouse_x, mouse_y):
     """
     Returns which menu item the mouse is in.
@@ -67,11 +81,20 @@ class GUI:
 
     def draw_variation_menu(self):
         try:
-            coords = get_variation_menu_coords(GUI.moves_panel[0][0],
-                                               GUI.moves_panel[1][0],
-                                               self._initial_variation_y,
-                                               30, len(self.node.variations))
-            for c in coords:
+            coords = None
+            amount_variations = len(self.node.variations)
+            count = itertools.count()
+            while next(count) < 20 and (coords is None or coords
+                    and coords[-1][-1][-1] > GUI.moves_panel[-1][-1]):
+                if coords:
+                    coords = shift_variation_menu(coords, 30)
+                else:
+                    coords = get_variation_menu_coords(GUI.moves_panel[0][0],
+                                                       GUI.moves_panel[1][0],
+                                                       self._initial_variation_y,
+                                                       30, amount_variations)
+
+            for c in coords[: 14]:
                 gfx.filled_polygon(self.screen, c, (0, 0, 0))
 
         except AttributeError as e:
