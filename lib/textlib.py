@@ -85,10 +85,11 @@ class GUI:
         Processes mouse input for textlib.
 
         :param coords: the raw mouse coordinates
+        :return: None
         """
-        var_menu_coords = self.__get_var_menu_coords()
         # Update the variation menu
         if self.display_variation_menu:
+            var_menu_coords = self.__get_var_menu_coords()
             self.variation_menu_emphasis = get_variation_menu_item(var_menu_coords, *coords)
             self.draw_variation_menu()
 
@@ -97,6 +98,7 @@ class GUI:
         Processes mouse click input for textlib.
 
         :param coords: the raw mouse coordinates
+        :return: None
         """
         var_menu_coords = self.__get_var_menu_coords()
         loc = get_variation_menu_item(var_menu_coords, *coords)
@@ -107,9 +109,39 @@ class GUI:
             self.display_variation_menu = False
             self.render_history()
         elif loc == 0:
-            self.display_variation_menu = True
-            self.variation_menu_emphasis = 0
-            self.draw_variation_menu()
+            self.__initiate_variation_menu()
+
+    def textlib_process_key_press(self, event):
+        """
+        Processes key press input for textlib.
+
+        :param event: the key pres event
+        :return: None
+        """
+        key = event.key
+
+        # If ctrl is pressed, multiply key by -1
+        if self.key_pressed[305] or self.key_pressed[306]:
+            key *= -1
+
+        # control right arrow
+        if key == -275:
+            if not self.display_variation_menu:
+                self.__initiate_variation_menu()
+        elif key == 274:
+            if self.display_variation_menu:
+                self.variation_menu_emphasis += 1
+                self.variation_menu_emphasis %= min(14, len(self.node.variations))
+                self.draw_variation_menu()
+        elif key == 273:
+            if self.display_variation_menu:
+                self.variation_menu_emphasis -= 1
+                self.variation_menu_emphasis %= min(14, len(self.node.variations))
+                self.draw_variation_menu()
+        elif key == 13 or key == 275:
+            if self.display_variation_menu:
+                self.node = self.node.variations[self.variation_menu_emphasis]
+                self.move += .5
 
     def draw_variation_menu(self):
         if self.node.variations[1:]:
@@ -313,3 +345,9 @@ class GUI:
 
         except Exception as e:
             self.stderr(e)
+
+    def __initiate_variation_menu(self):
+        self.display_variation_menu = True
+        self.variation_menu_emphasis = 0
+        self.draw_variation_menu()
+

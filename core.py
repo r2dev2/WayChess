@@ -19,7 +19,9 @@ class Database:
         except FileNotFoundError:
             self.add()
 
-    def add(self, item=chess.pgn.Game()):
+    def add(self, item=None):
+        if item is None:
+            item = chess.pgn.Game()
         self.games.append(item)
 
     def new_file(self):

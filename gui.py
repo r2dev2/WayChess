@@ -217,6 +217,7 @@ class GUI(lib.GUI):
     def background(self):
         self.screen.fill((21, 21, 21))
         self.blurred = False
+        self.display_variation_menu = False
         self.set_board()
 
     def blur(self):
@@ -403,6 +404,7 @@ class GUI(lib.GUI):
                 -101: self.configure_engine_options, # ctrl e
                 111: self.load_pgn,  #                 o
                 120: self.explorer,  #                 x
+                27: self.background, #                 <esc>
                 113: self.exit,  #                     q
             }
             dispatch_table = self.key_pressed_dispatch
@@ -410,11 +412,13 @@ class GUI(lib.GUI):
         try:
             func = dispatch_table[key]
         except KeyError:
-            return
+            func = lambda: None
 
         if not self.onui:
             self.stdout("Called", key)
             func()
+
+        self.textlib_process_key_press(event)
 
     def key_release(self, event):
         """
