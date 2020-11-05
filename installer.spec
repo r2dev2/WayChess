@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['installer.py'],
-             pathex=['/mnt/c/Users/ronak/Documents/Workspace/WayChess'],
+             pathex=['C:\\Users\\ronak\\Documents\\Workspace\\WayChess'],
              binaries=[],
              datas=[],
              hiddenimports=[],

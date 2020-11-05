@@ -1,4 +1,5 @@
 import json
+import io
 import os
 import re
 import sys
@@ -8,13 +9,18 @@ from multiprocessing import freeze_support
 from pathlib import Path
 from threading import Thread, Lock
 
-import cpuinfo
-import pygame
-import pygame.gfxdraw
-import pygame_gui
+# Pygame sends a stdout message
+actual_stdout = sys.stdout
+with io.StringIO() as sys.stdout:
+    import cpuinfo
+    import pygame
+    import pygame.gfxdraw
+    import pygame_gui
+sys.stdout = actual_stdout
 
 import lib
 from core import Database
+
 
 SQUARE_SIZE = 68
 pwd = Path.home() / ".waychess"
@@ -540,6 +546,8 @@ def main():
 
 if __name__ == "__main__":
     freeze_support()
+    print("Welcome to WayChess. Please don't close this console!")
+
     # Get pgn path
     try:
         if os.path.isfile(sys.argv[1]):

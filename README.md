@@ -28,19 +28,20 @@ chmod +x cleartype-install-linux.bash
 
 Keybindings:
 
-|    Key     |     Function     |
-| ---------- | ---------------- |
-| ``<-``     | Move back        |
-| ``->``     | Move forward     |
-| ``f``      | Flip board       |
-| ``s``      | Save database    |
-| ``ctrl+n`` | Create game      |
-| ``n``      | Next game        |
-| ``b``      | Previous game    |
-| ``e``      | Toggle engine    |
-| ``o``      | Load a pgn       |
-| ``x``      | Toggle explorer  |
-| ``q``      | Quit application |
+|    Key        |     Function     |
+| ------------- | ---------------- |
+| ``<-``        | Move back        |
+| ``->``        | Move forward     |
+| ``ctrl + ->`` | Variation menu   |
+| ``f``         | Flip board       |
+| ``s``         | Save database    |
+| ``ctrl + n``  | Create game      |
+| ``n``         | Next game        |
+| ``b``         | Previous game    |
+| ``e``         | Toggle engine    |
+| ``o``         | Load a pgn       |
+| ``x``         | Toggle explorer  |
+| ``q``         | Quit application |
 
 
 ## Tests
@@ -54,7 +55,7 @@ make test
   - [x] Open source chess gui
   - [ ] Fully-featured
       - [x] Comments
-      - [ ] Variations
+      - [x] Variations
       - [ ] Annotations
       - [ ] Engine matches
       - [x] Engine options

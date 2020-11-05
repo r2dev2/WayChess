@@ -144,9 +144,10 @@ class GUI:
     def clear_analysis(self):
         self.stdout("cleared")
 
-    @staticmethod
-    def configure_engine_options():
-        webbrowser.open(str(Path.home() / ".waychess" / "engineoptions.json"))
+    def configure_engine_options(self):
+        path = Path.home() / ".waychess" / "engineoptions.json"
+        path.touch()
+        self.stdout("[ENGINE CONFIGURE", webbrowser.open(str(path)))
 
     def set_analysis(self):
         self.stdout("Set engine task")
