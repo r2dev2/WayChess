@@ -3,7 +3,7 @@ py = python3
 cc := ${py} -m PyInstaller
 
 pgg = dist/gui/pygame_gui
-data = ${pgg}/data
+data := ${pgg}/data
 pggdatacdn = https://raw.githubusercontent.com/MyreMylar/pygame_gui/main/pygame_gui/data
 
 all: init build data
@@ -11,7 +11,7 @@ all: init build data
 .PHONY: init build data test clean
 
 init:
-	$(py) -m pip install pyinstaller pytest
+	$(py) -m pip install PyInstaller==3.6 pytest==5.4.3
 	$(py) -m pip install -r requirements.txt
 
 build:

@@ -129,7 +129,7 @@ def get_config(default_options={}):
     try:
         with open(Path.home() / ".waychess" / "engineoptions.json", 'r') as fin:
             return {
-                k: v for k, v in json.loads(fin.read()).items()
+                k: v for k, v in json.load(fin).items()
                 if k.lower() not in {"ponder", "multipv", "uci_chess960"}
             }
     except FileNotFoundError:
@@ -149,6 +149,14 @@ class GUI:
         path.touch()
         self.stdout("[ENGINE CONFIGURE", webbrowser.open(str(path)))
 
+    def reconfigure_engine(self):
+        try:
+            self.engine.configure(get_config({
+                k: v.default for k, v in self.engine.options.items()
+            }))
+        except Exception as e:
+            self.stderr("[EGNINE RECONFIGURE]", e)
+
     def set_analysis(self):
         self.stdout("Set engine task")
         beg = time.time()
@@ -161,9 +169,7 @@ class GUI:
                 self.stdout("Failed due to", e)
                 self.exit()
             self.stdout("Loading engine options")
-            self.engine.configure(get_config({
-                k: v.default for k, v in self.engine.options.items()
-            }))
+            self.reconfigure_engine()
         self.is_analysing = True
         self.show_engine = True
         self.analysis_display = GUIAnalysis(self)
@@ -208,6 +214,7 @@ class GUI:
     def engine_callback(self):
         try:
             if not self.show_engine:
+                self.reconfigure_engine()
                 self.set_analysis()
             else:
                 self.stop_analysis()

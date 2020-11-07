@@ -10,13 +10,12 @@ from pathlib import Path
 from threading import Thread, Lock
 
 # Pygame sends a stdout message
-actual_stdout = sys.stdout
 with io.StringIO() as sys.stdout:
     import cpuinfo
     import pygame
     import pygame.gfxdraw
     import pygame_gui
-sys.stdout = actual_stdout
+sys.stdout = sys.__stdout__
 
 import lib
 from core import Database
