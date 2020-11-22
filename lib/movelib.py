@@ -13,11 +13,11 @@ class GUI:
         :returns: None
         """
         if piece in "kK" and self.is_checked(piece):
-            self.screen.blit(self.check, self.get_coords(*position))
+            self.blit(self.check, self.get_coords(*position))
         else:
             self.draw_square(*position)
         with self.display_lock:
-            self.screen.blit(self.piece_to_img[piece], self.get_coords(*position))
+            self.blit(self.piece_to_img[piece], self.get_coords(*position))
         assert all(0 <= val <= 7 for val in position), str(position)
         self.piece_at[position] = piece
 
@@ -74,10 +74,10 @@ class GUI:
         for i, piece in enumerate(pieces):
             a_coords = self.get_coords(*coords)
             if i != in_focus:
-                self.screen.blit(self.promo_back, a_coords)
+                self.blit(self.promo_back, a_coords)
             else:
-                self.screen.blit(self.promo_high, a_coords)
-            self.screen.blit(self.piece_to_img[piece], a_coords)
+                self.blit(self.promo_high, a_coords)
+            self.blit(self.piece_to_img[piece], a_coords)
             self.promo_coords.append(coords)
             if self.white:
                 coords = (coords[0], coords[1] + 1)

@@ -198,6 +198,9 @@ class GUI(lib.GUI):
         self._display_size = value
         self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
         self.background()
+
+    def blit(self, data, coords):
+        self.screen.blit(data, coords)
     
     def stdout(self, *args, **kwargs):
         if self.debug:
@@ -336,10 +339,7 @@ class GUI(lib.GUI):
 
                 piece_coords = (coords[0] - SQUARE_SIZE // 2, coords[1] - SQUARE_SIZE // 2,)
                 if all(-68 <= val <= 68*8 for val in coords):
-                    self.screen.blit(
-                        self.piece_to_img[piece],
-                        piece_coords,
-                    )
+                    self.blit(self.piece_to_img[piece], piece_coords)
 
         elif self.button_pressed[3]:
             self.background()
@@ -455,6 +455,7 @@ class GUI(lib.GUI):
 
     def resize_display(self, event):
         self.display_size = event.size
+        GUI.coords.scale_factor = 1
 
     def handle_event(self, e):
         try:

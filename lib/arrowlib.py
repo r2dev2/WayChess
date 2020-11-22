@@ -1,10 +1,11 @@
 import math
 import re
 import sys
-import time
 
 import pygame
 import pygame.gfxdraw
+
+from . import baselib as bs
 
 
 def get_line_points(sx, sy, ex, ey, thickness):
@@ -149,10 +150,12 @@ class GUI:
         :param end: the raw coordinates of the end of the arrow
         :return: None
         """
-        if all(0 <= val <= 68*8 for val in [*start, *end]):
+        SQ = bs.GUI.coords["square size"]
+        at = bs.GUI.coords["arrow thickness"]
+        if all(0 <= val <= SQ*8 for val in [*start, *end]):
             if color is None:
                 color = self.arrow_color
-            arrow(self.screen, color, color, start, end, 20, 20)
+            arrow(self.screen, color, color, start, end, at, at)
 
     def draw_arrow(self, start, end):
         """
@@ -174,21 +177,15 @@ class GUI:
 
     def set_arrows(self, drawing=False):
         """Render all arrows"""
-        # print(self.arrows)
-        time.time()
-        SQUARE_SIZE = self.SQUARE_SIZE
+        SQUARE_SIZE = bs.GUI.coords["square size"]
         arrows = self.arrows
-        time.time()
         for arrow in arrows:
             start = arrow.beg
             end = arrow.end
             s = tuple(i + SQUARE_SIZE // 2 for i in self.get_coords(*start))
             e = tuple(i + SQUARE_SIZE // 2 for i in self.get_coords(*end))
             self.draw_raw_arrow(s, e, arrow.color)
-        time.time()
         if self.move_arrow is not None:
             self.draw_raw_arrow(*self.move_arrow, self.move_arrow_color)
-        time.time()
         if not drawing:
             self.update_explorer()
-        time.time()

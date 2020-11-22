@@ -79,6 +79,7 @@ def get_variation_menu_item(coordlist, mouse_x, mouse_y):
 
 class GUI:
     moves_panel = [(580, 65), (750, 65), (750, 555), (580, 555)]
+    hist_slot_height = 30
 
     def textlib_process_mouse_over(self, coords):
         """
@@ -224,8 +225,8 @@ class GUI:
                 rect = [
                     (b_left, y + dy),
                     (b_right, y + dy),
-                    (b_right, y + dy + 30),
-                    (b_left, y + dy + 30),
+                    (b_right, y + dy + GUI.hist_slot_height),
+                    (b_left, y + dy + GUI.hist_slot_height),
                 ]
                 gfx.filled_polygon(self.screen, rect, (0, 0, 0))
                 self._initial_variation_y = y + dy
@@ -235,7 +236,7 @@ class GUI:
                 True,
                 (0, 0, 0) if move.startswith("\t") else (21, 21, 21),
             )
-            y += 30
+            y += GUI.hist_slot_height
         if "--always-variation" in sys.argv or self.display_variation_menu:
             self.draw_variation_menu()
         return moves
@@ -335,12 +336,13 @@ class GUI:
             while next(count) < 20 and (coords is None or coords
                     and coords[-1][-1][-1] > GUI.moves_panel[-1][-1]):
                 if coords:
-                    coords = shift_variation_menu(coords, 30)
+                    coords = shift_variation_menu(coords, GUI.hist_slot_height)
                 else:
                     coords = get_variation_menu_coords(GUI.moves_panel[0][0],
                                                        GUI.moves_panel[1][0],
                                                        self._initial_variation_y,
-                                                       30, amount_variations)
+                                                       GUI.hist_slot_height,
+                                                       amount_variations)
             return coords
 
         except Exception as e:

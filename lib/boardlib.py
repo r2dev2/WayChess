@@ -1,3 +1,5 @@
+from . import baselib as bs
+
 class GUI:
     """Board and coordinate gui backend"""
 
@@ -21,7 +23,7 @@ class GUI:
         """
         Draws the board at the current node, renders history, and draws arrows
         """
-        SQUARE_SIZE = self.SQUARE_SIZE
+        SQUARE_SIZE = bs.GUI.coords["square size"]
         try:
             bx, by = self.get_coords(*self.to_square(self.node.move.from_square))
             ex, ey = self.get_coords(*self.to_square(self.node.move.to_square))
@@ -72,12 +74,12 @@ class GUI:
 
     def get_coords(self, x, y):
         """Gets the screen coordinates at a board point (x,y)"""
-        SQUARE_SIZE = self.SQUARE_SIZE
+        SQUARE_SIZE = bs.GUI.coords["square size"]
         return (x * SQUARE_SIZE, y * SQUARE_SIZE)
 
     def receive_coords(self, x, y):
         """Represents the coordinates in the form of ``SQUARE_SIZE``"""
-        SQUARE_SIZE = self.SQUARE_SIZE
+        SQUARE_SIZE = bs.GUI.coords["square size"]
         return (x // SQUARE_SIZE, y // SQUARE_SIZE)
 
     def draw_square(self, x, y):
@@ -87,9 +89,9 @@ class GUI:
 
         with self.display_lock:
             if (x + y) % 2:
-                self.screen.blit(self.dark, coords)
+                self.blit(self.dark, coords)
             else:
-                self.screen.blit(self.light, coords)
+                self.blit(self.light, coords)
 
     def draw_board(self):
         """Draws the empty board"""
