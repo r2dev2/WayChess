@@ -9,6 +9,7 @@ get_variation_menu_item = lib.textlib.get_variation_menu_item
 grouper_it = lib.textlib.grouper_it
 GUI = lib.textlib.GUI
 
+
 def test_grouper_it():
     test_list = list(range(1, 10))
     test_iter = iter(grouper_it(2, test_list))
@@ -25,20 +26,20 @@ def test_move_text_history():
     """
     game = chess.pgn.Game()
     moves = [
-        "e2e4", "e7e5",
-        "g1f3", "b8c6",
-        "f1b5", "a7a6",
-        "b5a4", "g8f6",
-        "d2d3", "b7b5",
-        "a4b3"
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "f1b5",
+        "a7a6",
+        "b5a4",
+        "g8f6",
+        "d2d3",
+        "b7b5",
+        "a4b3",
     ]
 
-    var_moves = moves[:6] + [
-        "b5c6", "d7c6",
-        "d2d4", "e5d4",
-        "d1d4", "d8d4",
-        "f3d4"
-    ]
+    var_moves = moves[:6] + ["b5c6", "d7c6", "d2d4", "e5d4", "d1d4", "d8d4", "f3d4"]
 
     head = game
 
@@ -55,25 +56,25 @@ def test_move_text_history():
             head = head.add_variation(chess_move)
 
     variation_path = [0] * len(moves)
-    assert GUI._GUI__get_move_text_history(game, .5, variation_path ) == [
+    assert GUI._GUI__get_move_text_history(game, 0.5, variation_path) == [
         "\t1. e4 e5",
         "2. Nf3 Nc6",
         "*3. Bb5 a6",
         "4. Ba4 Nf6",
         "5. d3 b5",
-        "6. Bb3"
+        "6. Bb3",
     ]
 
     variation_path = [0] * len(var_moves)
     variation_path[5] = 1
-    assert GUI._GUI__get_move_text_history(game, .5, variation_path ) == [
+    assert GUI._GUI__get_move_text_history(game, 0.5, variation_path) == [
         "\t1. e4 e5",
         "2. Nf3 Nc6",
         "*3. Bb5 a6",
         "4. Bxc6 dxc6",
         "5. d4 exd4",
         "6. Qxd4 Qxd4",
-        "7. Nxd4"
+        "7. Nxd4",
     ]
 
 
@@ -81,7 +82,7 @@ def test_get_variation_menu_coords():
     assert get_variation_menu_coords(20, 40, 20, 10, 3) == [
         [(20, 20), (40, 20), (40, 30), (20, 30)],
         [(20, 30), (40, 30), (40, 40), (20, 40)],
-        [(20, 40), (40, 40), (40, 50), (20, 50)]
+        [(20, 40), (40, 40), (40, 50), (20, 50)],
     ]
 
 
@@ -89,14 +90,14 @@ def test_get_variation_menu_item():
     menu_coords = [
         [(20, 20), (40, 20), (40, 30), (20, 30)],
         [(20, 30), (40, 30), (40, 40), (20, 40)],
-        [(20, 40), (40, 40), (40, 50), (20, 50)]
+        [(20, 40), (40, 40), (40, 50), (20, 50)],
     ]
     tests = [
         ((30, 25), 0),
         ((30, 35), 1),
         ((30, 45), 2),
         ((10, 25), None),
-        ((30, 60), None)
+        ((30, 60), None),
     ]
     for test in tests:
         assert get_variation_menu_item(menu_coords, *test[0]) == test[1]
@@ -106,12 +107,12 @@ def test_shift_variation_menu():
     old_menu_coords = [
         [(20, 30), (40, 30), (40, 40), (20, 40)],
         [(20, 40), (40, 40), (40, 50), (20, 50)],
-        [(20, 50), (40, 50), (40, 60), (20, 60)]
+        [(20, 50), (40, 50), (40, 60), (20, 60)],
     ]
     new_menu_coords = [
         [(20, 20), (40, 20), (40, 30), (20, 30)],
         [(20, 30), (40, 30), (40, 40), (20, 40)],
-        [(20, 40), (40, 40), (40, 50), (20, 50)]
+        [(20, 40), (40, 40), (40, 50), (20, 50)],
     ]
 
     assert shift_variation_menu(old_menu_coords, 10) == new_menu_coords

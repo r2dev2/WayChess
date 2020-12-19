@@ -70,7 +70,9 @@ def eval_to_str(ev):
         raise e
 
 
-def analysis(engine, display, board=chess.Board(), end=lambda: False, options={"multipv": 3}):
+def analysis(
+    engine, display, board=chess.Board(), end=lambda: False, options={"multipv": 3}
+):
     """
     Syncronous analysis for use in a threading.Thread
 
@@ -103,20 +105,20 @@ class GUIAnalysis(AnalysisDisplay):
     def __init__(self, gui):
         self.queue = []
         self.gui = gui
-        self.contents = ['']*3
+        self.contents = [""] * 3
 
     def pre_display(self):
         pass
 
     def raw_display(self, i, info):
-        self.contents[i-1] = f"{i}. {info}"
-        html = '<br> <br>'.join(self.contents)
+        self.contents[i - 1] = f"{i}. {info}"
+        html = "<br> <br>".join(self.contents)
 
         def task():
             nonlocal self, html
             b = time.time()
             self.gui.create_engine_box(html)
-            self.gui.stdout("ENGINE UPDATE IN", time.time()-b)
+            self.gui.stdout("ENGINE UPDATE IN", time.time() - b)
 
         self.gui.d_manager.submit(task)
 
@@ -127,13 +129,14 @@ class GUIAnalysis(AnalysisDisplay):
 
 def get_config(default_options={}):
     try:
-        with open(Path.home() / ".waychess" / "engineoptions.json", 'r') as fin:
+        with open(Path.home() / ".waychess" / "engineoptions.json", "r") as fin:
             return {
-                k: v for k, v in json.load(fin).items()
+                k: v
+                for k, v in json.load(fin).items()
                 if k.lower() not in {"ponder", "multipv", "uci_chess960"}
             }
     except FileNotFoundError:
-        with open(Path.home() / ".waychess" / "engineoptions.json", 'w+') as fout:
+        with open(Path.home() / ".waychess" / "engineoptions.json", "w+") as fout:
             print(json.dumps(default_options, indent=4), file=fout, flush=True)
         return dict()
 
@@ -151,9 +154,9 @@ class GUI:
 
     def reconfigure_engine(self):
         try:
-            self.engine.configure(get_config({
-                k: v.default for k, v in self.engine.options.items()
-            }))
+            self.engine.configure(
+                get_config({k: v.default for k, v in self.engine.options.items()})
+            )
         except Exception as e:
             self.stderr("[EGNINE RECONFIGURE]", e)
 
@@ -182,12 +185,11 @@ class GUI:
             threading.Thread(
                 target=analysis,
                 args=(
-                    self.engine, 
-                    self.analysis_display, 
-                    self.board, 
-                    get_end, {
-                        "multipv": 3,
-                    }
+                    self.engine,
+                    self.analysis_display,
+                    self.board,
+                    get_end,
+                    {"multipv": 3,},
                 ),
                 daemon=True,
             )

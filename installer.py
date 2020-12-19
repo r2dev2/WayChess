@@ -17,15 +17,14 @@ import requests
 pwd = Path.home() / ".waychess"
 
 try:
-    with open(pwd / "stockfish_links.json", 'r') as fin:
+    with open(pwd / "stockfish_links.json", "r") as fin:
         text = fin.read()
 except FileNotFoundError:
     r = requests.get(
-            "https://raw.githubusercontent.com/r2dev2bb8/"
-            "WayChess/master/stockfish_links.json"
-        )
+        "https://raw.githubusercontent.com/r2dev2bb8/"
+        "WayChess/master/stockfish_links.json"
+    )
     text = r.text
-
 
 
 stockfish_info = json.loads(text)
@@ -34,13 +33,14 @@ flags = []
 
 
 def unzip(filepath: str, resultpath: str) -> None:
-    with zipfile.ZipFile(filepath, 'r') as zip_ref:
+    with zipfile.ZipFile(filepath, "r") as zip_ref:
         zip_ref.extractall(resultpath)
+
 
 # I know this is camel case, pls don't crucify me
 def downloadStockfish() -> None:
     stock_ver = which_stockfish()
-    platform = sys.platform.replace("32", '')
+    platform = sys.platform.replace("32", "")
     link = stockfish_info[platform][stock_ver]["link"]
     print("Installing stockfish from", link)
     call(["curl", "-o", "stockfish.zip", link])
@@ -53,11 +53,10 @@ def downloadStockfish() -> None:
 
 def findStockfish() -> Path:
     stock_ver = which_stockfish()
-    platform = sys.platform.replace("32", '')
+    platform = sys.platform.replace("32", "")
     location = stockfish_info[platform][stock_ver]["file"]
-    return (
-        pwd / "engines" / "stockfish" / location
-    )
+    return pwd / "engines" / "stockfish" / location
+
 
 def which_stockfish() -> str:
     """
@@ -85,28 +84,29 @@ def create_dir(path):
 
 
 def init():
-    with open(pwd / "stockfish_links.json", 'w+') as fout:
+    with open(pwd / "stockfish_links.json", "w+") as fout:
         print(text, file=fout)
     r = requests.get(
-            "https://raw.githubusercontent.com/r2dev2bb8/"
-            "WayChess/master/theme.json"
-        )
+        "https://raw.githubusercontent.com/r2dev2bb8/" "WayChess/master/theme.json"
+    )
 
-    with open(pwd / "theme.json", 'w+') as fout:
+    with open(pwd / "theme.json", "w+") as fout:
         print(r.text, file=fout)
 
     os.mkdir(pwd / "data")
     for filename in (
-            "default_theme.json", "FiraCode-Bold.ttf",
-            "FiraCode-Regular.ttf", "FiraMono-BoldItalic.ttf",
-            "FiraMono-RegularItalic.ttf"):
+        "default_theme.json",
+        "FiraCode-Bold.ttf",
+        "FiraCode-Regular.ttf",
+        "FiraMono-BoldItalic.ttf",
+        "FiraMono-RegularItalic.ttf",
+    ):
         r = requests.get(
-                "https://raw.githubusercontent.com/MyreMylar/"
-                f"pygame_gui/main/pygame_gui/data/{filename}"
-            )
-        with open(pwd / "data" / filename, 'wb+') as fout:
+            "https://raw.githubusercontent.com/MyreMylar/"
+            f"pygame_gui/main/pygame_gui/data/{filename}"
+        )
+        with open(pwd / "data" / filename, "wb+") as fout:
             fout.write(r.content)
-
 
 
 def img_download_task(pwd, img):

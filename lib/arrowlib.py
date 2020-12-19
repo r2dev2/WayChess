@@ -152,7 +152,7 @@ class GUI:
         """
         SQ = bs.GUI.coords["square size"]
         at = bs.GUI.coords["arrow thickness"]
-        if all(0 <= val <= SQ*8 for val in [*start, *end]):
+        if all(0 <= val <= SQ * 8 for val in [*start, *end]):
             if color is None:
                 color = self.arrow_color
             arrow(self.screen, color, color, start, end, at, at)

@@ -19,7 +19,7 @@ build:
 	$(cc) --onefile --noupx installer.py
 
 data:
-	- rm -r $(pgg)
+	rm -rf $(pgg)
 	mkdir $(pgg)
 	mkdir $(data)
 	curl -s -o $(data)/default_theme.json $(pggdatacdn)/default_theme.json

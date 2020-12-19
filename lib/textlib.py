@@ -38,10 +38,9 @@ def get_variation_menu_coords(left, right, initial_y, delta_y, variations):
     for i in range(min(14, variations)):
         top_y = initial_y + i * delta_y
         bottom_y = top_y + delta_y
-        coords.append([
-            (left, top_y), (right, top_y),
-            (right, bottom_y), (left, bottom_y)
-        ])
+        coords.append(
+            [(left, top_y), (right, top_y), (right, bottom_y), (left, bottom_y)]
+        )
     return coords
 
 
@@ -91,7 +90,9 @@ class GUI:
         # Update the variation menu
         if self.display_variation_menu:
             var_menu_coords = self.__get_var_menu_coords()
-            self.variation_menu_emphasis = get_variation_menu_item(var_menu_coords, *coords)
+            self.variation_menu_emphasis = get_variation_menu_item(
+                var_menu_coords, *coords
+            )
             self.draw_variation_menu()
 
     def textlib_process_mouse_click(self, coords):
@@ -105,7 +106,7 @@ class GUI:
         loc = get_variation_menu_item(var_menu_coords, *coords)
         if self.display_variation_menu and loc is not None:
             self.node = self.node.variations[loc]
-            self.move += .5
+            self.move += 0.5
         elif self.display_variation_menu:
             self.display_variation_menu = False
             self.render_history()
@@ -142,7 +143,7 @@ class GUI:
         elif key == 13 or key == 275:
             if self.display_variation_menu:
                 self.node = self.node.variations[self.variation_menu_emphasis]
-                self.move += .5
+                self.move += 0.5
 
     def draw_variation_menu(self):
         if self.node.variations[1:]:
@@ -153,20 +154,19 @@ class GUI:
                         text = re.search(r"\((.+)\.\.\.\)", repr(v)).group(1)
                     except Exception:
                         text = ""
-                    color = (0, 0, 0) if i != self.variation_menu_emphasis else (42, 42, 42)
+                    color = (
+                        (0, 0, 0) if i != self.variation_menu_emphasis else (42, 42, 42)
+                    )
                     gfx.filled_polygon(self.screen, c, color)
                     try:
                         self.render_text(
-                            text,
-                            (None, c[0][1] + 5), # (None, y),
-                            True,
-                            color
+                            text, (None, c[0][1] + 5), True, color  # (None, y),
                         )
                     except Exception as e:
                         print(e)
             except AttributeError as e:
                 self.stderr(e)
-    
+
     def render_history(self):
         """
         Renders the history with autoscroll.
@@ -195,8 +195,9 @@ class GUI:
 
         try:
             if moves is None:
-                moves = self.__get_move_text_history(game, self.move,
-                                                     self.variation_path[1:])
+                moves = self.__get_move_text_history(
+                    game, self.move, self.variation_path[1:]
+                )
         except IndexError:
             moves = []
         except Exception:
@@ -297,12 +298,12 @@ class GUI:
         tabbed = False
         moves = []
         # nodes will be tuple of either 2 nodes or 1 node
-        # it will be 2 nodes for a full move 
+        # it will be 2 nodes for a full move
         #   and 1 node for a half move
-        any_l, len_l, int_l = any, len, int # lookup time optimization
+        any_l, len_l, int_l = any, len, int  # lookup time optimization
         for counter, nodes in enumerate(
-            map(tuple, grouper_it(
-                2, GUI.__board_node_generator(beg, variation_path))), 1
+            map(tuple, grouper_it(2, GUI.__board_node_generator(beg, variation_path))),
+            1,
         ):
 
             try:
@@ -315,17 +316,16 @@ class GUI:
 
             # Add a * if there are multiple variations
             if any_l(len_l(n.variations) > 1 for n in nodes):
-                s = '*' + s
-
+                s = "*" + s
 
             # Add a tab if the move is the current move
             if counter - 1 == int_l(emphasis - 0.5):
-                s = '\t' + s
+                s = "\t" + s
                 tabbed = True
 
             moves.append(s)
         if not tabbed:
-            moves[-1] = '\t' + moves[-1]
+            moves[-1] = "\t" + moves[-1]
         return moves
 
     def __get_var_menu_coords(self):
@@ -333,16 +333,21 @@ class GUI:
             coords = None
             amount_variations = len(self.node.variations)
             count = itertools.count()
-            while next(count) < 20 and (coords is None or coords
-                    and coords[-1][-1][-1] > GUI.moves_panel[-1][-1]):
+            while next(count) < 20 and (
+                coords is None
+                or coords
+                and coords[-1][-1][-1] > GUI.moves_panel[-1][-1]
+            ):
                 if coords:
                     coords = shift_variation_menu(coords, GUI.hist_slot_height)
                 else:
-                    coords = get_variation_menu_coords(GUI.moves_panel[0][0],
-                                                       GUI.moves_panel[1][0],
-                                                       self._initial_variation_y,
-                                                       GUI.hist_slot_height,
-                                                       amount_variations)
+                    coords = get_variation_menu_coords(
+                        GUI.moves_panel[0][0],
+                        GUI.moves_panel[1][0],
+                        self._initial_variation_y,
+                        GUI.hist_slot_height,
+                        amount_variations,
+                    )
             return coords
 
         except Exception as e:
@@ -352,4 +357,3 @@ class GUI:
         self.display_variation_menu = True
         self.variation_menu_emphasis = 0
         self.draw_variation_menu()
-

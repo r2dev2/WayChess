@@ -97,7 +97,7 @@ class Explorer:
     def render(self, gui):
         # gui.action_execute.append(lambda: self.clear_render(gui))
         with gui.display_lock:
-        # if 0:
+            # if 0:
             self.clear_render(gui)
             sx, sy = Explorer.panel[0]
             # buffer = [lambda: (c.render(gui, (sx, sy + i * 20), print(c)))

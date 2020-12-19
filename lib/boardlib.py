@@ -1,5 +1,6 @@
 from . import baselib as bs
 
+
 class GUI:
     """Board and coordinate gui backend"""
 

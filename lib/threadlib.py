@@ -55,7 +55,7 @@ class DelayedExecution(Thread):
 
     def run(self):
         while not self._endfunc():
-            while self.queue.qsize()>1:
+            while self.queue.qsize() > 1:
                 self.queue.get()
             func = self.queue.get()
             sleep(self.delay)
@@ -73,4 +73,4 @@ class GUI:
     def create_thread_manager(self):
         self.display_lock = Lock()
         self.t_manager = GCService(self.program_end_flag)
-        self.d_manager = DelayedExecution(.2, self.program_end_flag)
+        self.d_manager = DelayedExecution(0.2, self.program_end_flag)

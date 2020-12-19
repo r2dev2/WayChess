@@ -2,6 +2,7 @@ from .context import JSObj, lib
 
 CoordinateManager = lib.coordlib.CoordinateManager
 
+
 def test_scale():
     cm = CoordinateManager()
     cm["test"] = 1

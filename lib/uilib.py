@@ -4,10 +4,12 @@ from threading import Thread, get_ident
 import pygame as pg
 import pygame_gui as pgg
 
+
 class TextEntry(pgg.elements.UITextEntryLine):
     """
     Text Entry Class with focus callbacks
     """
+
     def __init__(self, onfocus, onunfocus, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._focus_callback = onfocus
@@ -28,6 +30,7 @@ class TextShow(pgg.elements.UITextBox):
     """
     Text Box class with focus callbacks
     """
+
     def __init__(self, onfocus, onunfocus, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._focus_callback = onfocus
@@ -44,13 +47,12 @@ class TextShow(pgg.elements.UITextBox):
 
     def contains(self, x, y):
         coords = self.coords
-        return \
-                coords[0][0] <= x <= coords[1][0] \
-                and coords[0][1] <= x <= coords[1][1]
+        return coords[0][0] <= x <= coords[1][0] and coords[0][1] <= x <= coords[1][1]
 
 
 class GUI:
     has_made_ui = False
+
     def create_ui(self):
         if not GUI.has_made_ui:
             self.stdout("Creating ui")
@@ -58,7 +60,7 @@ class GUI:
             self.create_ui_comment()
 
             self.create_engine_box()
-            
+
             self.create_ui_comment_edit()
             self.comment_edit_box.hide()
             self.set_ui_comment()
@@ -100,21 +102,23 @@ class GUI:
 
     def create_ui_comment(self):
         self.comment_box = TextShow(
-                    lambda : self.set_ui_comment_edit(),
-                    lambda : None,
-                    '',
-                    pg.Rect((45, 555), (445, 630)),
-                    self.manager,
-                    object_id="#commentshow")
-        self.comment_box.set_dimensions((400, 630-555))
+            lambda: self.set_ui_comment_edit(),
+            lambda: None,
+            "",
+            pg.Rect((45, 555), (445, 630)),
+            self.manager,
+            object_id="#commentshow",
+        )
+        self.comment_box.set_dimensions((400, 630 - 555))
 
     def create_ui_comment_edit(self):
         self.comment_edit_box = TextEntry(
-                    onfocus=lambda : self.set_ui(True),
-                    onunfocus=lambda : self.set_ui_comment(),
-                    relative_rect = pg.Rect((45, 555), (445, -1)),
-                    manager=self.manager,
-                    object_id="#commentedit")
+            onfocus=lambda: self.set_ui(True),
+            onunfocus=lambda: self.set_ui_comment(),
+            relative_rect=pg.Rect((45, 555), (445, -1)),
+            manager=self.manager,
+            object_id="#commentedit",
+        )
 
     def set_ui_comment_edit(self):
         self.box_hide("comment_box")
@@ -122,7 +126,7 @@ class GUI:
         self.comment_edit_box.set_text(self.node.comment)
         self.comment_edit_box.rebuild()
 
-    def create_engine_box(self, text=''):
+    def create_engine_box(self, text=""):
         try:
             try:
                 self.engine_box_queue.append(text)
@@ -134,33 +138,34 @@ class GUI:
         except Exception as e:
             self.stderr(e)
 
-    def create_engine_box_task(self, text=''):
+    def create_engine_box_task(self, text=""):
         try:
             self.stdout("[UI] Engine box rebuild")
             self.engine_box.html_text = text
             b = time.time()
             self.engine_box.rebuild()
-            self.stdout("[UI] Engine box rebuild at t =", time.time()-b, "seconds")
+            self.stdout("[UI] Engine box rebuild at t =", time.time() - b, "seconds")
             self.engine_box.show()
-            self.stdout("[UI] Engine box show at t =", time.time()-b, "seconds")
+            self.stdout("[UI] Engine box show at t =", time.time() - b, "seconds")
         except AttributeError:
             b = time.time()
             self.engine_box = TextShow(
-                    lambda : self.stdout("focus"),
-                    lambda : self.stdout("unfocus"),
-                    text,
-                    relative_rect=pg.Rect((35, 650), (755, 795)), 
-                    manager=self.manager,
-                    object_id="#engineeval")
-            
-            self.engine_box.coords = ((35, 650), (755, 795)) 
+                lambda: self.stdout("focus"),
+                lambda: self.stdout("unfocus"),
+                text,
+                relative_rect=pg.Rect((35, 650), (755, 795)),
+                manager=self.manager,
+                object_id="#engineeval",
+            )
+
+            self.engine_box.coords = ((35, 650), (755, 795))
 
             # Need to set dimensions again due to pygame_gui bug
-            self.engine_box.set_dimensions((755-35, 795-650))
+            self.engine_box.set_dimensions((755 - 35, 795 - 650))
             self.engine_box.hide()
             self.engine_box.show()
             GUI.has_made_ui = True
-            self.stdout("[UI] INIT: Built engine box in %f seconds" % (time.time()-b))
+            self.stdout("[UI] INIT: Built engine box in %f seconds" % (time.time() - b))
 
     def create_manager(self):
         try:
@@ -193,4 +198,3 @@ class GUI:
             self.manager.process_events(event)
             raise e
         self.manager.process_events(event)
-

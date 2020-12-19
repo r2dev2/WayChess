@@ -26,11 +26,12 @@ pwd = Path.home() / ".waychess"
 img = pwd / "img"
 pgn_path = pwd / "test.pgn"
 
-with open(pwd / "stockfish_links.json", 'r') as fin:
+with open(pwd / "stockfish_links.json", "r") as fin:
     stockfish_info = json.loads(fin.read())
 
+
 def get_engine_path(pwd):
-    platform = sys.platform.replace("32", '')
+    platform = sys.platform.replace("32", "")
     flags = cpuinfo.get_cpu_info()["flags"]
     if "bmi2" in flags:
         version = "bmi2"
@@ -39,9 +40,7 @@ def get_engine_path(pwd):
     else:
         version = "64bit"
     location = stockfish_info[platform][version]["file"]
-    return (
-        pwd / "engines" / "stockfish" / location
-    )
+    return pwd / "engines" / "stockfish" / location
 
 
 pygame.init()
@@ -162,13 +161,13 @@ class GUI(lib.GUI):
             try:
                 position = self._node.variations.index(value)
                 try:
-                    self.variation_path[int(self.move*2)] = position
+                    self.variation_path[int(self.move * 2)] = position
                 except IndexError:
                     self.variation_path.append(position)
             # Will be raised if value is not a future variation
             except ValueError:
                 try:
-                    self.variation_path[int(self.move*2)-1] = 0
+                    self.variation_path[int(self.move * 2) - 1] = 0
                 except IndexError:
                     pass
         # Will be raised if not hasattr(self, "_node")
@@ -198,10 +197,13 @@ class GUI(lib.GUI):
         self._display_size = value
         self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
         self.background()
+        print(value)
 
     def blit(self, data, coords):
-        self.screen.blit(data, coords)
-    
+        newdata = GUI.coords.scale(data)
+        newcoords = GUI.coords.scale(coords)
+        self.screen.blit(newdata, newcoords)
+
     def stdout(self, *args, **kwargs):
         if self.debug:
             print(*args, **kwargs)
@@ -280,7 +282,6 @@ class GUI(lib.GUI):
             self.is_promoting = False
             self.set_board()
 
-
     def release(self, event):
         """
         The mouse button release callback.
@@ -337,8 +338,11 @@ class GUI(lib.GUI):
                 self.background()
                 self.draw_square(*self.beg_click)
 
-                piece_coords = (coords[0] - SQUARE_SIZE // 2, coords[1] - SQUARE_SIZE // 2,)
-                if all(-68 <= val <= 68*8 for val in coords):
+                piece_coords = (
+                    coords[0] - SQUARE_SIZE // 2,
+                    coords[1] - SQUARE_SIZE // 2,
+                )
+                if all(-68 <= val <= 68 * 8 for val in coords):
                     self.blit(self.piece_to_img[piece], piece_coords)
 
         elif self.button_pressed[3]:
@@ -406,10 +410,10 @@ class GUI(lib.GUI):
                 110: self.next_game,  #                n
                 98: self.previous_game,  #             b
                 101: self.engine_callback,  #          e
-                -101: self.configure_engine_options, # ctrl e
+                -101: self.configure_engine_options,  # ctrl e
                 111: self.load_pgn,  #                 o
                 120: self.explorer,  #                 x
-                27: self.background, #                 <esc>
+                27: self.background,  #                 <esc>
                 113: self.exit,  #                     q
             }
             dispatch_table = self.key_pressed_dispatch
@@ -481,10 +485,10 @@ class GUI(lib.GUI):
 
     def __call__(self):
         """The main event loop"""
-        clock = pygame.time.Clock() 
+        clock = pygame.time.Clock()
         while True:
             # Higher than my refresh rate to allow for quicker processing
-            time_delta = clock.tick(288) / 1000.
+            time_delta = clock.tick(288) / 1000.0
             try:
                 if self.button_pressed[1] or self.onui:
                     for event in pygame.event.get():
