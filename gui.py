@@ -1,5 +1,5 @@
-import json
 import io
+import json
 import os
 import re
 import sys
@@ -7,7 +7,7 @@ import time
 import traceback
 from multiprocessing import freeze_support
 from pathlib import Path
-from threading import Thread, Lock
+from threading import Lock, Thread
 
 # Pygame sends a stdout message
 with io.StringIO() as sys.stdout:
@@ -19,7 +19,6 @@ sys.stdout = sys.__stdout__
 
 import lib
 from core import Database
-
 
 SQUARE_SIZE = 68
 pwd = Path.home() / ".waychess"

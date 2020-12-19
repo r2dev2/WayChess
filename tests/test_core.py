@@ -1,6 +1,5 @@
 from .context import core
 
-
 d = core.Database()
 
 

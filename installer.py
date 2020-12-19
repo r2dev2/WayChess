@@ -12,7 +12,6 @@ from threading import Thread
 import cpuinfo
 import requests
 
-
 # working directory will be ~/.waychess
 pwd = Path.home() / ".waychess"
 
