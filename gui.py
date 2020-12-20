@@ -196,7 +196,6 @@ class GUI(lib.GUI):
         self._display_size = value
         self.screen = pygame.display.set_mode(value, pygame.RESIZABLE)
         self.background()
-        print(value)
 
     def blit(self, data, coords):
         newdata = GUI.coords.scale(data)
