@@ -198,8 +198,7 @@ class GUI(lib.GUI):
         self.background()
 
     def blit(self, data, coords):
-        newdata = GUI.coords.scale(data)
-        newcoords = GUI.coords.scale(coords)
+        newdata, newcoords = map(GUI.coords.scale, (data, coords))
         self.screen.blit(newdata, newcoords)
 
     def stdout(self, *args, **kwargs):

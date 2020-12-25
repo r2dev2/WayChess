@@ -79,7 +79,7 @@ class GUI:
                 self.blit(self.promo_high, a_coords)
             self.blit(self.piece_to_img[piece], a_coords)
             self.promo_coords.append(coords)
-            if self.white:
+            if self.white == self.board.turn:
                 coords = (coords[0], coords[1] + 1)
             else:
                 coords = (coords[0], coords[1] - 1)
