@@ -271,12 +271,12 @@ class GUI(lib.GUI):
                 self.is_promoting = False
                 self.set_board()
                 return
-            idx = coords[0] if self.board.turn else 7 - coords[0]
+            idx = coords[0] if self.white else 7 - coords[0]
             end = 8 if self.board.turn else 1
             file = "abcdefgh"[idx]
-            move = self.board.push_san(f"{file}{end}={choice}")
             self.stdout("Trying", f"{file}{end}={choice}")
-            self.node = self.node.add_main_variation(move)
+            move = self.board.push_san(f"{file}{end}={choice}")
+            self.node = self.node.add_variation(move)
             self.is_promoting = False
             self.set_board()
 
