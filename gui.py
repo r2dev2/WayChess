@@ -225,7 +225,8 @@ class GUI(lib.GUI):
         self.screen.fill((21, 21, 21))
         self.blurred = False
         self.display_variation_menu = False
-        self.set_board()
+        if not self.is_promoting:
+            self.set_board()
 
     def blur(self):
         if not self.blurred:
@@ -258,7 +259,7 @@ class GUI(lib.GUI):
         :param event: the event
         :return: None
         """
-        p_coords = self.receive_coords(*event.pos)
+        coords = self.receive_coords(*event.pos)
         if self.is_promoting:
             self.stdout("Click while promoting")
             try:

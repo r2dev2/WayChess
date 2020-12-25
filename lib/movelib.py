@@ -66,7 +66,6 @@ class GUI:
         if self.board.turn:
             pieces = pieces.upper()
 
-        coords[0], coords[1]
         self.promo_coords = []
 
         self.blur()

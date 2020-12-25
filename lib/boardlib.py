@@ -24,6 +24,8 @@ class GUI:
         """
         Draws the board at the current node, renders history, and draws arrows
         """
+        if self.is_promoting:
+            return
         SQUARE_SIZE = bs.GUI.coords["square size"]
         try:
             bx, by = self.get_coords(*self.to_square(self.node.move.from_square))
