@@ -276,7 +276,8 @@ class GUI(lib.GUI):
             file = "abcdefgh"[idx]
             self.stdout("Trying", f"{file}{end}={choice}")
             move = self.board.push_san(f"{file}{end}={choice}")
-            self.node = self.node.add_variation(move)
+            self.make_move(move)
+            # self.node = self.node.add_variation(move)
             self.is_promoting = False
             self.set_board()
 

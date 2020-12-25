@@ -42,18 +42,24 @@ class GUI:
             board = self.board.copy()
             try:
                 move = board.push_uci(str(move))
-                if self.node.has_variation(move):
-                    self.node = self.node.variation(move)
-                elif self.key_pressed[306]:
-                    self.node = self.node.add_main_variation(move)
-                else:
-                    self.node = self.node.add_variation(move)
-                self.move += 0.5
+                self.make_move(move)
             # Raises ValueError if the move is illegal
             except ValueError:
                 self.background()
                 return
             self.set_board()
+
+    def make_move(self, move):
+        """
+        Adds a chess Move from board.push() to node.
+        """
+        if self.node.has_variation(move):
+            self.node = self.node.variation(move)
+        elif self.key_pressed[306]:
+            self.node = self.node.add_main_variation(move)
+        else:
+            self.node = self.node.add_variation(move)
+        self.move += 0.5
 
     def draw_promote_menu(self, coords, in_focus=None):
         """
@@ -72,10 +78,8 @@ class GUI:
 
         for i, piece in enumerate(pieces):
             a_coords = self.get_coords(*coords)
-            if i != in_focus:
-                self.blit(self.promo_back, a_coords)
-            else:
-                self.blit(self.promo_high, a_coords)
+            promo_bg = self.promo_high if i == in_focus else self.promo_back
+            self.blit(promo_bg, a_coords)
             self.blit(self.piece_to_img[piece], a_coords)
             self.promo_coords.append(coords)
             if self.white == self.board.turn:
