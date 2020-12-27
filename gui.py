@@ -221,12 +221,12 @@ class GUI(lib.GUI):
         else:
             self.render_explorer()
 
-    def background(self):
+    def background(self, **kwargs):
         self.screen.fill((21, 21, 21))
         self.blurred = False
         self.display_variation_menu = False
         if not self.is_promoting:
-            self.set_board()
+            self.set_board(**kwargs)
 
     def blur(self):
         if not self.blurred:
@@ -269,7 +269,7 @@ class GUI(lib.GUI):
             except ValueError:
                 self.stdout("Coords not found")
                 self.is_promoting = False
-                self.set_board()
+                self.background()
                 return
             idx = coords[0] if self.white else 7 - coords[0]
             end = 8 if self.board.turn else 1
@@ -277,7 +277,6 @@ class GUI(lib.GUI):
             self.stdout("Trying", f"{file}{end}={choice}")
             move = self.board.push_san(f"{file}{end}={choice}")
             self.make_move(move)
-            # self.node = self.node.add_variation(move)
             self.is_promoting = False
             self.set_board()
 
@@ -321,7 +320,7 @@ class GUI(lib.GUI):
         :param event: the event
         :returns: None
         """
-        SQUARE_SIZE = self.SQUARE_SIZE
+        SQUARE_SIZE = GUI.coords["square size"]
         coords = event.pos  # raw coordinates
         p_coords = self.receive_coords(*coords)
         if self.is_promoting:
@@ -334,14 +333,17 @@ class GUI(lib.GUI):
         elif self.button_pressed[1]:
             piece = self.piece_at.get(self.beg_click, None)
             if piece is not None:
-                self.background()
+                self.background(set_arrows=False)
                 self.draw_square(*self.beg_click)
+                self.set_arrows()
 
                 piece_coords = (
                     coords[0] - SQUARE_SIZE // 2,
                     coords[1] - SQUARE_SIZE // 2,
                 )
-                if all(-68 <= val <= 68 * 8 for val in coords):
+                bot = -SQUARE_SIZE
+                up = SQUARE_SIZE * 8
+                if all(bot <= val <= up for val in coords):
                     self.blit(self.piece_to_img[piece], piece_coords)
 
         elif self.button_pressed[3]:

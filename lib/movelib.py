@@ -21,6 +21,18 @@ class GUI:
         assert all(0 <= val <= 7 for val in position), str(position)
         self.piece_at[position] = piece
 
+    def __is_promotion_move(self, piece, processed_beg, processed_end):
+        ((bx, by), (ex, ey)) = processed_beg, processed_end
+        move = chess.Move(*map(self.from_square, (bx, ex), (by, ey)), promotion=5)
+        return self.validate_move(move)
+
+    def validate_move(self, move):
+        try:
+            self.board.copy().push_uci(str(move))
+            return True
+        except ValueError:
+            return False
+
     def draw_move(self, beg, end):
         """
         Draws the move on the board.
@@ -31,23 +43,18 @@ class GUI:
         """
         piece = self.piece_at.get(beg, None)
         assert piece is not None, f"{self.piece_at} doesn't have\n\n{beg}"
-        if piece in "pP" and (
-            (end[1] == 0 and self.board.turn) or (end[1] == 7 and not self.board.turn)
-        ):
-            self.is_promoting = True
-            self.set_arrows()
-            self.draw_promote_menu(end)
-        elif piece is not None and not self.is_promoting:
-            move = chess.Move(self.from_square(*beg), self.from_square(*end))
-            board = self.board.copy()
-            try:
-                move = board.push_uci(str(move))
+        try:
+            if self.__is_promotion_move(piece, beg, end):
+                self.is_promoting = True
+                self.set_arrows()
+                self.draw_promote_menu(end)
+            elif piece is not None and not self.is_promoting:
+                move = chess.Move(self.from_square(*beg), self.from_square(*end))
+                move = self.board.copy().push_uci(str(move))
                 self.make_move(move)
-            # Raises ValueError if the move is illegal
-            except ValueError:
-                self.background()
-                return
-            self.set_board()
+                self.set_board()
+        except ValueError:
+            self.background()
 
     def make_move(self, move):
         """

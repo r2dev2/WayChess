@@ -20,7 +20,7 @@ class GUI:
         """
         return self.board.fen()
 
-    def set_board(self):
+    def set_board(self, set_arrows=True):
         """
         Draws the board at the current node, renders history, and draws arrows
         """
@@ -44,7 +44,8 @@ class GUI:
             piece = p.symbol()
             draw_piece(piece, (rank, file))
         self.right_panel()
-        self.set_arrows()
+        if set_arrows:
+            self.set_arrows()
         # print("[COMMENT]", self.node.comment)
 
     def whereis(self, piece):
