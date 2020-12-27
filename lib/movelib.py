@@ -53,6 +53,8 @@ class GUI:
                 move = self.board.copy().push_uci(str(move))
                 self.make_move(move)
                 self.set_board()
+            else:
+                self.background()
         except ValueError:
             self.background()
 
